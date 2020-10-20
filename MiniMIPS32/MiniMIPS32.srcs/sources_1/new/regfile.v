@@ -59,7 +59,7 @@ module regfile(
 			regs[31] <= `ZERO_WORD;
 		end
 		else begin
-			if ((we == `WRITE_ENABLE) && (wa != 5'h0))	
+			if ((we == `WRITE_ENABLE) && (wa != 5'h0))	//写使能且目的寄存器不是0寄存器
 				regs[wa] <= wd;
 		end
 	end
@@ -68,26 +68,26 @@ module regfile(
 	// ra1是读地址、wa是写地址、we是写使能、wd是要写入的数据 
 	always @(*) begin
 		if (cpu_rst_n == `RST_ENABLE)
-			rd1 <= `ZERO_WORD;
+			rd1 = `ZERO_WORD;
 		else if (ra1 == `REG_NOP)
-			rd1 <= `ZERO_WORD;
+			rd1 = `ZERO_WORD;
 		else if (re1 == `READ_ENABLE)
-			rd1 <= regs[ra1];
+			rd1 = regs[ra1];
 		else
-			rd1 <= `ZERO_WORD;
+			rd1 = `ZERO_WORD;
 	end
 	
 	//读端口2的读操作 
 	// ra2是读地址、wa是写地址、we是写使能、wd是要写入的数据 
 	always @(*) begin
 		if (cpu_rst_n == `RST_ENABLE)
-			rd2 <= `ZERO_WORD;
+			rd2 = `ZERO_WORD;
 		else if (ra2 == `REG_NOP)
-			rd2 <= `ZERO_WORD;
+			rd2 = `ZERO_WORD;
 		else if (re2 == `READ_ENABLE)
-			rd2 <= regs[ra2];
+			rd2 = regs[ra2];
 		else
-			rd2 <= `ZERO_WORD;
+			rd2 = `ZERO_WORD;
 	end
 
 endmodule

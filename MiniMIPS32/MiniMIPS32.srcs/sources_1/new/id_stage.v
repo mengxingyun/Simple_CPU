@@ -16,8 +16,11 @@ module id_stage(
     // 送至执行阶段的译码信息
     output wire [`ALUTYPE_BUS  ]    id_alutype_o,
     output wire [`ALUOP_BUS    ]    id_aluop_o,
-    output wire [`REG_ADDR_BUS ]    id_wa_o,
+    output wire                     id_whilo_o,//乘法标识位
+   // output wire                     id_mreg_o,//是否写入寄存器堆
+    output wire [`REG_ADDR_BUS ]    id_wa_o,//写入目的寄存器的地址
     output wire                     id_wreg_o,
+    //output wire [`REG_BUS]          id_din_o,//
 
     // 送至执行阶段的源操作数1、源操作数2
     output wire [`REG_BUS      ]    id_src1_o,
@@ -45,6 +48,7 @@ module id_stage(
     /*-------------------- 第一级译码逻辑：确定当前需要译码的指令 --------------------*/
     wire inst_reg  = ~|op;
     wire inst_and  = inst_reg& func[5]&~func[4]&~func[3]& func[2]&~func[1]&~func[0];
+    wire inst_mult = inst_reg & ~func[5] & func[4] & func[3] & ~func[2] & ~func[1] & ~func[0];
     /*------------------------------------------------------------------------------*/
 
     /*-------------------- 第二级译码逻辑：生成具体控制信号 --------------------*/
@@ -57,18 +61,23 @@ module id_stage(
     assign id_aluop_o[7]   = 1'b0;
     assign id_aluop_o[6]   = 1'b0;
     assign id_aluop_o[5]   = 1'b0;
-    assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
+    assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult);
     assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
-    assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
+    assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult);
     assign id_aluop_o[1]   = 1'b0;
     assign id_aluop_o[0]   = 1'b0;
 
     // 写通用寄存器使能信号
     assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
+    
+    //写HILO寄存器使能信号
+    assign id_whilo_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_mult;
+    
     // 读通用寄存器堆端口1使能信号
-    assign rreg1 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
+    assign rreg1 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult);
     // 读通用寄存器堆读端口2使能信号
-    assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
+    assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult);
+    
     /*------------------------------------------------------------------------------*/
 
     // 读通用寄存器堆端口1的地址为rs字段，读端口2的地址为rt字段

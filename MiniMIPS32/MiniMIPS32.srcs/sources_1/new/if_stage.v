@@ -3,7 +3,6 @@
 module if_stage (
     input 	wire 					cpu_clk_50M,
     input 	wire 					cpu_rst_n,
-    
     output  reg                     ice,
     output 	reg  [`INST_ADDR_BUS] 	pc,
     output 	wire [`INST_ADDR_BUS]	iaddr
@@ -11,6 +10,7 @@ module if_stage (
     
     wire [`INST_ADDR_BUS] pc_next; 
     assign pc_next = pc + 4;                  // 计算下一条指令的地址
+    
     always @(posedge cpu_clk_50M) begin
 		if (cpu_rst_n == `RST_ENABLE) begin
 			ice <= `CHIP_DISABLE;		      // 复位的时候指令存储器禁用  
