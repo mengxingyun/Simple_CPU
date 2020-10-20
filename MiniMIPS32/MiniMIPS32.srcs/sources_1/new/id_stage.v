@@ -48,27 +48,29 @@ module id_stage(
     /*-------------------- 第一级译码逻辑：确定当前需要译码的指令 --------------------*/
     wire inst_reg  = ~|op;
     wire inst_and  = inst_reg& func[5]&~func[4]&~func[3]& func[2]&~func[1]&~func[0];
-    wire inst_mult = inst_reg & ~func[5] & func[4] & func[3] & ~func[2] & ~func[1] & ~func[0];
+    wire inst_mult = inst_reg & ~func[5] & func[4] & func[3] & ~func[2] & ~func[1] & ~func[0];//
+    wire inst_mfhi = inst_reg & ~ func[5] & func[4] & ~func[3] & ~func[2] & ~func[1] & ~func[0];//2: move from hi
+    wire inst_mflo = inst_reg & ~func[5] & func[4] & ~func[3] & ~func[2] & func[1] & ~func[0];//3: move from lo
     /*------------------------------------------------------------------------------*/
 
     /*-------------------- 第二级译码逻辑：生成具体控制信号 --------------------*/
     // 操作类型alutype
     assign id_alutype_o[2] = 1'b0;
-    assign id_alutype_o[1] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
-    assign id_alutype_o[0] = 1'b0;
+    assign id_alutype_o[1] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mfhi | inst_mflo);
+    assign id_alutype_o[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mfhi | inst_mflo);
 
     // 内部操作码aluop
     assign id_aluop_o[7]   = 1'b0;
     assign id_aluop_o[6]   = 1'b0;
     assign id_aluop_o[5]   = 1'b0;
     assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult);
-    assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
-    assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult);
+    assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mflo | inst_mfhi);
+    assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_mfhi | inst_mflo);
     assign id_aluop_o[1]   = 1'b0;
-    assign id_aluop_o[0]   = 1'b0;
+    assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_mflo;
 
     // 写通用寄存器使能信号
-    assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_and;
+    assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mfhi | inst_mflo);
     
     //写HILO寄存器使能信号
     assign id_whilo_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_mult;
