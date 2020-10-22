@@ -20,7 +20,7 @@ module id_stage(
     output wire                     id_mreg_o,// 存储器到寄存器的使能信号
     output wire [`REG_ADDR_BUS ]    id_wa_o,//写入目的寄存器的地址
     output wire                     id_wreg_o,
-    //output wire [`REG_BUS]          id_din_o,//
+    output wire [`REG_BUS]          id_din_o,// 写入内存的数据
 
     // 送至执行阶段的源操作数1、源操作数2
     output wire [`REG_BUS      ]    id_src1_o,
@@ -56,23 +56,29 @@ module id_stage(
     wire inst_lui  = ~op[5] & ~op[4] & op[3] & op[2] & op[1] & op[0];  //6: lui
     wire inst_lb   = op[5] & ~op[4] & ~op[3] & ~op[2] & ~op[1] & ~op[0]; //7: lb
     wire inst_lw   = op[5] & ~op[4] & ~op[3] & ~op[2] & op[1] & op[0]; //8: lw
+    wire inst_sb   = op[5] & ~op[4] & op[3] & ~op[2] & ~op[1] & ~op[0]; //9: sb
+    wire inst_sh   = op[5] & ~op[4] & op[3] & ~op[2] & ~op[1] & op[0]; //10: sh
+    wire inst_sw   = op[5] & ~op[4] & op[3] & ~op[2] & op[1] & op[0]; //11: sw
     /*------------------------------------------------------------------------------*/
 
     /*-------------------- 第二级译码逻辑：生成具体控制信号 --------------------*/
     // 操作类型alutype
     assign id_alutype_o[2] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_sll;
     assign id_alutype_o[1] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mfhi | inst_mflo | inst_ori | inst_lui);
-    assign id_alutype_o[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mfhi | inst_mflo | inst_lb | inst_lw);
+    assign id_alutype_o[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mfhi | inst_mflo | inst_lb | inst_lw | inst_sb | inst_sh | 
+                                                                  inst_sw);
 
     // 内部操作码aluop
-    assign id_aluop_o[7]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw);
+    assign id_aluop_o[7]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw | inst_sb | inst_sh | inst_sw);
     assign id_aluop_o[6]   = 1'b0;
     assign id_aluop_o[5]   = 1'b0;
-    assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_ori | inst_lw | inst_lb);
-    assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mflo | inst_mfhi | inst_ori);
+    assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_ori | inst_lw | inst_lb |
+                                                                  inst_sb | inst_sw | inst_sh);
+    assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mflo | inst_mfhi | inst_ori | inst_sb | inst_sh |
+                                                                  inst_sw);
     assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_mfhi | inst_mflo | inst_ori | inst_lui);
-    assign id_aluop_o[1]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_lw;
-    assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mflo | inst_sll | inst_ori | inst_lui);
+    assign id_aluop_o[1]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lw | inst_sw);
+    assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mflo | inst_sll | inst_ori | inst_lui | inst_sh);
 
     // 写通用寄存器使能信号
     assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mfhi | inst_mflo | inst_sll 
@@ -85,13 +91,13 @@ module id_stage(
     wire shift = inst_sll;
     
     //立即数使能信号
-    wire immsel = inst_ori | inst_lui | inst_lw | inst_lb;
+    wire immsel = inst_ori | inst_lui | inst_lw | inst_lb | inst_sb | inst_sh | inst_sw;
     
     //目的寄存器选择信号(rt还是rd)
     wire rtsel = inst_ori | inst_lui | inst_lb | inst_lw;
     
     //符号扩展使能信号
-    wire sext = inst_lb | inst_lw;
+    wire sext = inst_lb | inst_lw | inst_sb | inst_sh | inst_sw;
     
     //加载高半字使能信号
     wire upper = inst_lui;
@@ -100,9 +106,10 @@ module id_stage(
     assign id_mreg_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw);
     
     // 读通用寄存器堆端口1使能信号
-    assign rreg1 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_ori | inst_lb | inst_lw);
+    assign rreg1 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_ori | inst_lb | inst_lw | inst_sb | inst_sh | 
+                                                        inst_sw );
     // 读通用寄存器堆读端口2使能信号
-    assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll);
+    assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_sb | inst_sh | inst_sw);
     
     /*------------------------------------------------------------------------------*/
 
@@ -117,7 +124,9 @@ module id_stage(
                                             
     // 获得待写入目的寄存器的地址（rt或rd）
     assign id_wa_o      = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : (rtsel == `RT_ENABLE) ? rt : rd;
-                          
+    
+    //获得访存阶段要存入数据存储器的数据(rt读出的rd2)
+    assign id_din_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : rd2;             
 
     // 获得源操作数1。如果shift信号有效，则源操作数1为移位位数；否则为从读通用寄存器堆端口1获得的数据
     assign id_src1_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :

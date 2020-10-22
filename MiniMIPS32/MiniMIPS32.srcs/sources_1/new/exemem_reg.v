@@ -12,6 +12,7 @@ module exemem_reg (
     input  wire                 exe_whilo,
     input  wire [`DOUBLE_REG_BUS] exe_hilo, 
     input  wire                   exe_mreg,
+    input  wire [`REG_BUS]        exe_din,
     
     // 送到访存阶段的信息 
     output reg  [`ALUOP_BUS   ] mem_aluop,
@@ -20,7 +21,8 @@ module exemem_reg (
     output reg  [`REG_BUS 	  ] mem_wd,
     output reg                  mem_whilo,
     output reg [`DOUBLE_REG_BUS] mem_hilo,
-    output reg                   mem_mreg
+    output reg                   mem_mreg,
+    output reg [`REG_BUS]        mem_din
     );
 
     always @(posedge cpu_clk_50M) begin
@@ -32,6 +34,7 @@ module exemem_reg (
         mem_whilo              <= `WRITE_DISABLE;
         mem_hilo               <= `ZERO_DWORD;
         mem_mreg               <= `WRITE_DISABLE;
+        mem_din                <= `ZERO_WORD;
     end
     else begin
         mem_aluop              <= exe_aluop;
@@ -41,6 +44,7 @@ module exemem_reg (
         mem_whilo              <= exe_whilo;
         mem_hilo               <= exe_hilo;
         mem_mreg               <= exe_mreg;
+        mem_din                <= exe_din;
     end
   end
 

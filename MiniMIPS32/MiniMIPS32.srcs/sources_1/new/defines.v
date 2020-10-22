@@ -53,8 +53,8 @@
 `define MINIMIPS32_LB              8'h90
 `define MINIMIPS32_LW              8'h92
 `define MINIMIPS32_SB              8'h98
+`define MINIMIPS32_SH              8'h99 //存半字
 `define MINIMIPS32_SW              8'h9A
-
 /*------------------- 通用寄存器堆参数 -------------------*/
 `define REG_BUS         31: 0               // 寄存器数据宽度
 `define REG_ADDR_BUS    4 : 0               // 寄存器的地址宽度

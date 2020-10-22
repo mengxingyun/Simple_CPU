@@ -11,6 +11,7 @@ module mem_stage (
     input  wire                         mem_whilo_i,
     input  wire [`DOUBLE_REG_BUS]       mem_hilo_i,
     input  wire                         mem_mreg_i,
+    input  wire [`REG_BUS]              mem_din_i,
     
     // 送至写回阶段的信息
     output wire [`REG_ADDR_BUS  ]       mem_wa_o,
@@ -20,11 +21,13 @@ module mem_stage (
     output wire [`DOUBLE_REG_BUS]       mem_hilo_o,
     output wire                         mem_mreg_o,
     output wire [`BSEL_BUS]             dre,
+
     
     //送至数据存储器的信号
     output wire                         dce,
     output wire[`INST_ADDR_BUS]         daddr,
-    output wire[`BSEL_BUS]              we
+    output wire[`BSEL_BUS]              we,
+    output wire [`REG_BUS]              din
     );
 
     // 如果当前不是访存指令，则只需要把从执行阶段获得的信息直接输出
@@ -38,6 +41,9 @@ module mem_stage (
     //确定当前的访存指令
     wire inst_lb = (mem_aluop_i == 8'h90);
     wire inst_lw = (mem_aluop_i == 8'h92);
+    wire inst_sb = (mem_aluop_i == 8'h98);
+    wire inst_sh = (mem_aluop_i == 8'h99);
+    wire inst_sw = (mem_aluop_i == 8'h9A); 
     
     //获得数据存储器的访问地址
     assign daddr = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : mem_wd_i;
@@ -54,7 +60,28 @@ module mem_stage (
     
     //获得数据存储器使能信号
     assign dce = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
-                 (inst_lb | inst_lw);
-                 
-    assign we = 4'b0;
+                 (inst_lb | inst_lw | inst_sb | inst_sh | inst_sw);
+    
+    //获得数据存储器写字节使能信号              
+    assign we[3] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : 
+                   ((inst_sb & (daddr[1:0] == 2'b00)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b00)));
+    assign we[2] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
+                   ((inst_sb & (daddr[1:0] == 2'b01)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b00)));
+    assign we[1] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
+                   ((inst_sb & (daddr[1:0] == 2'b10)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b10)));
+    assign we[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
+                   ((inst_sb & (daddr[1:0] == 2'b11)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b10)));
+                   
+    //确定待写入存储器的数据
+    wire [`WORD_BUS] din_reverse = {mem_din_i[7:0], mem_din_i[15:8], mem_din_i[23:16], mem_din_i[31:24]};
+    wire [`WORD_BUS] din_byte = {mem_din_i[7:0], mem_din_i[7:0], mem_din_i[7:0], mem_din_i[7:0]};
+    assign din = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :
+                 (we == 4'b1111) ? din_reverse :
+                 (we == 4'b1000) ? din_byte :
+                 (we == 4'b0100) ? din_byte :
+                 (we == 4'b0010) ? din_byte :
+                 (we == 4'b0001) ? din_byte :
+                 (we == 4'b1100) ? {din_reverse[31:16], {16{1'b0}}} :
+                 (we == 4'b0011) ? {{16{1'b0}}, din_reverse[31:16]} : `ZERO_WORD;
+                               
 endmodule
