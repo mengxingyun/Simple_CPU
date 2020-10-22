@@ -11,9 +11,9 @@ echo "Please update the PATH and LD_LIBRARY_PATH variables below, before executi
 exit
 
 if [ -z "$PATH" ]; then
-  PATH=E:/Xilinx/SDK/2017.3/bin;E:/Xilinx/Vivado/2017.3/ids_lite/ISE/bin/nt64;E:/Xilinx/Vivado/2017.3/ids_lite/ISE/lib/nt64:E:/Xilinx/Vivado/2017.3/bin
+  PATH=D:/SoftWare/Vivado/location/Vivado/2017.3/ids_lite/ISE/bin/nt64;D:/SoftWare/Vivado/location/Vivado/2017.3/ids_lite/ISE/lib/nt64:D:/SoftWare/Vivado/location/Vivado/2017.3/bin
 else
-  PATH=E:/Xilinx/SDK/2017.3/bin;E:/Xilinx/Vivado/2017.3/ids_lite/ISE/bin/nt64;E:/Xilinx/Vivado/2017.3/ids_lite/ISE/lib/nt64:E:/Xilinx/Vivado/2017.3/bin:$PATH
+  PATH=D:/SoftWare/Vivado/location/Vivado/2017.3/ids_lite/ISE/bin/nt64;D:/SoftWare/Vivado/location/Vivado/2017.3/ids_lite/ISE/lib/nt64:D:/SoftWare/Vivado/location/Vivado/2017.3/bin:$PATH
 fi
 export PATH
 
@@ -24,7 +24,7 @@ else
 fi
 export LD_LIBRARY_PATH
 
-HD_PWD='E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1'
+HD_PWD='D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1'
 cd "$HD_PWD"
 
 HD_LOG=runme.log

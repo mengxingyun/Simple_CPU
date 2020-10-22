@@ -1,10 +1,10 @@
 // Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2017.3 (win64) Build 2018833 Wed Oct  4 19:58:22 MDT 2017
-// Date        : Mon Apr 29 21:40:47 2019
-// Host        : LAPTOP-GDGGKCGC running 64-bit major release  (build 9200)
+// Date        : Thu Oct 22 10:12:41 2020
+// Host        : DESKTOP-VN5I31V running 64-bit major release  (build 9200)
 // Command     : write_verilog -force -mode funcsim
-//               e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.v
+//               D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.v
 // Design      : inst_rom
 // Purpose     : This verilog netlist is a functional simulation representation of the design and should not be modified
 //               or synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -109,7 +109,7 @@ module inst_rom
   (* C_USE_BRAM_BLOCK = "0" *) 
   (* C_USE_BYTE_WEA = "0" *) 
   (* C_USE_BYTE_WEB = "0" *) 
-  (* C_USE_DEFAULT_DATA = "0" *) 
+  (* C_USE_DEFAULT_DATA = "1" *) 
   (* C_USE_ECC = "0" *) 
   (* C_USE_SOFTECC = "0" *) 
   (* C_USE_URAM = "0" *) 
@@ -786,7 +786,7 @@ endmodule
 (* C_READ_WIDTH_B = "32" *) (* C_RSTRAM_A = "0" *) (* C_RSTRAM_B = "0" *) 
 (* C_RST_PRIORITY_A = "CE" *) (* C_RST_PRIORITY_B = "CE" *) (* C_SIM_COLLISION_CHECK = "ALL" *) 
 (* C_USE_BRAM_BLOCK = "0" *) (* C_USE_BYTE_WEA = "0" *) (* C_USE_BYTE_WEB = "0" *) 
-(* C_USE_DEFAULT_DATA = "0" *) (* C_USE_ECC = "0" *) (* C_USE_SOFTECC = "0" *) 
+(* C_USE_DEFAULT_DATA = "1" *) (* C_USE_ECC = "0" *) (* C_USE_SOFTECC = "0" *) 
 (* C_USE_URAM = "0" *) (* C_WEA_WIDTH = "1" *) (* C_WEB_WIDTH = "1" *) 
 (* C_WRITE_DEPTH_A = "2048" *) (* C_WRITE_DEPTH_B = "2048" *) (* C_WRITE_MODE_A = "WRITE_FIRST" *) 
 (* C_WRITE_MODE_B = "WRITE_FIRST" *) (* C_WRITE_WIDTH_A = "32" *) (* C_WRITE_WIDTH_B = "32" *) 

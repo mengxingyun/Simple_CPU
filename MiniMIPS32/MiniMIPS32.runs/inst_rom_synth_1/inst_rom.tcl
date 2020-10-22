@@ -24,15 +24,15 @@ set_param project.singleFileAddWarning.threshold 0
 set_param project.compositeFile.enableAutoGeneration 0
 set_param synth.vivado.isSynthRun true
 set_msg_config -source 4 -id {IP_Flow 19-2162} -severity warning -new_severity info
-set_property webtalk.parent_dir E:/new/class/MiniMIPS32/MiniMIPS32.cache/wt [current_project]
-set_property parent.project_path E:/new/class/MiniMIPS32/MiniMIPS32.xpr [current_project]
-set_property XPM_LIBRARIES XPM_MEMORY [current_project]
+set_property webtalk.parent_dir D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.cache/wt [current_project]
+set_property parent.project_path D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.xpr [current_project]
+set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
 set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
-set_property ip_output_repo e:/new/class/MiniMIPS32/MiniMIPS32.cache/ip [current_project]
+set_property ip_output_repo d:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.cache/ip [current_project]
 set_property ip_cache_permissions {read write} [current_project]
-read_ip -quiet e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom.xci
-set_property used_in_implementation false [get_files -all e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_ooc.xdc]
+read_ip -quiet D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom.xci
+set_property used_in_implementation false [get_files -all d:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_ooc.xdc]
 
 # Mark all dcp files as not used in implementation to prevent them from being
 # stitched into the results of this synthesis run. Any black boxes in the
@@ -45,7 +45,7 @@ foreach dcp [get_files -quiet -all -filter file_type=="Design\ Checkpoint"] {
 read_xdc dont_touch.xdc
 set_property used_in_implementation false [get_files dont_touch.xdc]
 
-set cached_ip [config_ip_cache -export -no_bom -use_project_ipc -dir E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1 -new_name inst_rom -ip [get_ips inst_rom]]
+set cached_ip [config_ip_cache -export -no_bom -use_project_ipc -dir D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1 -new_name inst_rom -ip [get_ips inst_rom]]
 
 if { $cached_ip eq {} } {
 
@@ -84,32 +84,32 @@ write_checkpoint -force -noxdef inst_rom.dcp
 create_report "inst_rom_synth_1_synth_report_utilization_0" "report_utilization -file inst_rom_utilization_synth.rpt -pb inst_rom_utilization_synth.pb"
 
 if { [catch {
-  file copy -force E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom.dcp e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom.dcp
+  file copy -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom.dcp D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom.dcp
 } _RESULT ] } { 
   send_msg_id runtcl-3 error "ERROR: Unable to successfully create or copy the sub-design checkpoint file."
   error "ERROR: Unable to successfully create or copy the sub-design checkpoint file."
 }
 
 if { [catch {
-  write_verilog -force -mode synth_stub e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.v
+  write_verilog -force -mode synth_stub D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.v
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create a Verilog synthesis stub for the sub-design. This may lead to errors in top level synthesis of the design. Error reported: $_RESULT"
 }
 
 if { [catch {
-  write_vhdl -force -mode synth_stub e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.vhdl
+  write_vhdl -force -mode synth_stub D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.vhdl
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create a VHDL synthesis stub for the sub-design. This may lead to errors in top level synthesis of the design. Error reported: $_RESULT"
 }
 
 if { [catch {
-  write_verilog -force -mode funcsim e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.v
+  write_verilog -force -mode funcsim D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.v
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create the Verilog functional simulation sub-design file. Post-Synthesis Functional Simulation with this file may not be possible or may give incorrect results. Error reported: $_RESULT"
 }
 
 if { [catch {
-  write_vhdl -force -mode funcsim e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.vhdl
+  write_vhdl -force -mode funcsim D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.vhdl
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create the VHDL functional simulation sub-design file. Post-Synthesis Functional Simulation with this file may not be possible or may give incorrect results. Error reported: $_RESULT"
 }
@@ -119,46 +119,46 @@ if { [catch {
 
 
 if { [catch {
-  file copy -force E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom.dcp e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom.dcp
+  file copy -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom.dcp D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom.dcp
 } _RESULT ] } { 
   send_msg_id runtcl-3 error "ERROR: Unable to successfully create or copy the sub-design checkpoint file."
   error "ERROR: Unable to successfully create or copy the sub-design checkpoint file."
 }
 
 if { [catch {
-  file rename -force E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_stub.v e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.v
+  file rename -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_stub.v D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.v
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create a Verilog synthesis stub for the sub-design. This may lead to errors in top level synthesis of the design. Error reported: $_RESULT"
 }
 
 if { [catch {
-  file rename -force E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_stub.vhdl e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.vhdl
+  file rename -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_stub.vhdl D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.vhdl
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create a VHDL synthesis stub for the sub-design. This may lead to errors in top level synthesis of the design. Error reported: $_RESULT"
 }
 
 if { [catch {
-  file rename -force E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_sim_netlist.v e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.v
+  file rename -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_sim_netlist.v D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.v
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create the Verilog functional simulation sub-design file. Post-Synthesis Functional Simulation with this file may not be possible or may give incorrect results. Error reported: $_RESULT"
 }
 
 if { [catch {
-  file rename -force E:/new/class/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_sim_netlist.vhdl e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.vhdl
+  file rename -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom_sim_netlist.vhdl D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_sim_netlist.vhdl
 } _RESULT ] } { 
   puts "CRITICAL WARNING: Unable to successfully create the VHDL functional simulation sub-design file. Post-Synthesis Functional Simulation with this file may not be possible or may give incorrect results. Error reported: $_RESULT"
 }
 
 }; # end if cached_ip 
 
-if {[file isdir E:/new/class/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom]} {
+if {[file isdir D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom]} {
   catch { 
-    file copy -force e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.v E:/new/class/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom
+    file copy -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.v D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom
   }
 }
 
-if {[file isdir E:/new/class/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom]} {
+if {[file isdir D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom]} {
   catch { 
-    file copy -force e:/new/class/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.vhdl E:/new/class/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom
+    file copy -force D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.srcs/sources_1/ip/inst_rom/inst_rom_stub.vhdl D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.ip_user_files/ip/inst_rom
   }
 }
