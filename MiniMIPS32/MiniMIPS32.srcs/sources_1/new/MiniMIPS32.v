@@ -173,7 +173,8 @@ module MiniMIPS32(
         .wb_mreg(wb_mreg_i), .wb_dre(wb_dre_i)
     );
 
-    wb_stage wb_stage0(.cpu_rst_n(cpu_rst_n),
+    wb_stage wb_stage0(
+        .cpu_rst_n(cpu_rst_n),
         .wb_wa_i(wb_wa_i), .wb_wreg_i(wb_wreg_i), .wb_dreg_i(wb_dreg_i), 
         .wb_whilo_i(wb_whilo_i), .wb_hilo_i(wb_hilo_i),
         .wb_mreg_i(wb_mreg_i), .wb_dre_i(wb_dre_i),

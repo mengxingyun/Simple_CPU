@@ -52,6 +52,9 @@ module id_stage(
     wire inst_mfhi = inst_reg & ~ func[5] & func[4] & ~func[3] & ~func[2] & ~func[1] & ~func[0];//2: move from hi
     wire inst_mflo = inst_reg & ~func[5] & func[4] & ~func[3] & ~func[2] & func[1] & ~func[0];//3: move from lo
     wire inst_sll  = inst_reg & ~func[5] & ~func[4] & ~func[3] & ~func[2] & ~func[1] & ~func[0];//4: sll
+    wire inst_add = inst_reg & func[5] & ~func[4] & ~func[3] & ~func[2] & ~func[1] & ~func[0]; //12: add
+    wire inst_subu = inst_reg & func[5] & ~func[4] & ~func[3] & ~func[2] & func[1] & func[0]; //13: subu
+    wire inst_slt = inst_reg & func[5] & ~func[4] & func[3] & ~func[2] & func[1] & ~func[0]; //14: slt
     wire inst_ori  = ~op[5] & ~op[4] & op[3] & op[2] & ~op[1] & op[0]; //5: ori
     wire inst_lui  = ~op[5] & ~op[4] & op[3] & op[2] & op[1] & op[0];  //6: lui
     wire inst_lb   = op[5] & ~op[4] & ~op[3] & ~op[2] & ~op[1] & ~op[0]; //7: lb
@@ -59,6 +62,8 @@ module id_stage(
     wire inst_sb   = op[5] & ~op[4] & op[3] & ~op[2] & ~op[1] & ~op[0]; //9: sb
     wire inst_sh   = op[5] & ~op[4] & op[3] & ~op[2] & ~op[1] & op[0]; //10: sh
     wire inst_sw   = op[5] & ~op[4] & op[3] & ~op[2] & op[1] & op[0]; //11: sw
+    wire inst_addiu = ~op[5] & ~op[4] & op[3] & ~op[2] & ~op[1] & op[0]; //15: addiu
+    wire inst_sltiu = ~op[5] & ~op[4] & op[3] & ~op[2] & op[1] & op[0]; //16: sltiu
     /*------------------------------------------------------------------------------*/
 
     /*-------------------- 第二级译码逻辑：生成具体控制信号 --------------------*/
@@ -66,23 +71,26 @@ module id_stage(
     assign id_alutype_o[2] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_sll;
     assign id_alutype_o[1] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mfhi | inst_mflo | inst_ori | inst_lui);
     assign id_alutype_o[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mfhi | inst_mflo | inst_lb | inst_lw | inst_sb | inst_sh | 
-                                                                  inst_sw);
+                                                                  inst_sw | inst_add | inst_subu | inst_slt | inst_addiu | inst_sltiu);
 
     // 内部操作码aluop
     assign id_aluop_o[7]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw | inst_sb | inst_sh | inst_sw);
     assign id_aluop_o[6]   = 1'b0;
-    assign id_aluop_o[5]   = 1'b0;
+    assign id_aluop_o[5]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_slt | inst_sltiu);
     assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_ori | inst_lw | inst_lb |
-                                                                  inst_sb | inst_sw | inst_sh);
+                                                                  inst_sb | inst_sw | inst_sh | inst_add | inst_subu | inst_addiu);
     assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mflo | inst_mfhi | inst_ori | inst_sb | inst_sh |
-                                                                  inst_sw);
-    assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_mfhi | inst_mflo | inst_ori | inst_lui);
-    assign id_aluop_o[1]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lw | inst_sw);
-    assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mflo | inst_sll | inst_ori | inst_lui | inst_sh);
+                                                                  inst_sw | inst_add | inst_subu | inst_addiu);
+    assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_mfhi | inst_mflo | inst_ori | inst_lui | 
+                                                                  inst_slt | inst_sltiu);
+    assign id_aluop_o[1]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lw | inst_sw | inst_subu | inst_slt | inst_sltiu);
+    assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mflo | inst_sll | inst_ori | inst_lui | inst_sh | inst_subu |
+                                                                  inst_addiu | inst_sltiu);
 
     // 写通用寄存器使能信号
     assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mfhi | inst_mflo | inst_sll 
-                                                                  | inst_ori | inst_lui | inst_lb | inst_lw);
+                                                                  | inst_ori | inst_lui | inst_lb | inst_lw |
+                                                                  inst_add | inst_subu | inst_slt | inst_addiu | inst_sltiu);
     
     //写HILO寄存器使能信号
     assign id_whilo_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_mult;
@@ -91,13 +99,13 @@ module id_stage(
     wire shift = inst_sll;
     
     //立即数使能信号
-    wire immsel = inst_ori | inst_lui | inst_lw | inst_lb | inst_sb | inst_sh | inst_sw;
+    wire immsel = inst_ori | inst_lui | inst_lw | inst_lb | inst_sb | inst_sh | inst_sw | inst_addiu | inst_sltiu;
     
     //目的寄存器选择信号(rt还是rd)
-    wire rtsel = inst_ori | inst_lui | inst_lb | inst_lw;
+    wire rtsel = inst_ori | inst_lui | inst_lb | inst_lw | inst_addiu | inst_sltiu;
     
     //符号扩展使能信号
-    wire sext = inst_lb | inst_lw | inst_sb | inst_sh | inst_sw;
+    wire sext = inst_lb | inst_lw | inst_sb | inst_sh | inst_sw | inst_addiu | inst_sltiu;
     
     //加载高半字使能信号
     wire upper = inst_lui;
@@ -107,9 +115,10 @@ module id_stage(
     
     // 读通用寄存器堆端口1使能信号
     assign rreg1 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_ori | inst_lb | inst_lw | inst_sb | inst_sh | 
-                                                        inst_sw );
+                                                        inst_sw | inst_add | inst_subu | inst_sltiu | inst_slt | inst_addiu);
     // 读通用寄存器堆读端口2使能信号
-    assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_sb | inst_sh | inst_sw);
+    assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_sb | inst_sh | inst_sw | 
+                                                        inst_add | inst_subu | inst_slt);
     
     /*------------------------------------------------------------------------------*/
 

@@ -55,7 +55,12 @@ module exe_stage (
                       (exe_aluop_i == `MINIMIPS32_LW) ? (exe_src1_i + exe_src2_i) : 
                       (exe_aluop_i == `MINIMIPS32_SB) ? (exe_src1_i + exe_src2_i) :
                       (exe_aluop_i == `MINIMIPS32_SH) ? (exe_src1_i + exe_src2_i) :
-                      (exe_aluop_i == `MINIMIPS32_SW) ? (exe_src1_i + exe_src2_i) :`ZERO_WORD;
+                      (exe_aluop_i == `MINIMIPS32_SW) ? (exe_src1_i + exe_src2_i) :
+                      (exe_aluop_i == `MINIMIPS32_ADD) ? (exe_src1_i + exe_src2_i) : 
+                      (exe_aluop_i == `MINIMIPS32_SUBU) ? (exe_src1_i + ~exe_src2_i + 1) : 
+                      (exe_aluop_i == `MINIMIPS32_SLT) ? (($signed(exe_src1_i) < $signed(exe_src2_i)) ? 32'b1 : 32'b0) : 
+                      (exe_aluop_i == `MINIMIPS32_SLTIU) ? ((exe_src1_i < exe_src2_i) ? 32'b1 : 32'b0) : 
+                      (exe_aluop_i == `MINIMIPS32_ADDIU) ? (exe_src1_i + exe_src2_i) : `ZERO_WORD;
     
     // 根据内部操作码aluop进行移位运算
     assign shiftres = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : 
