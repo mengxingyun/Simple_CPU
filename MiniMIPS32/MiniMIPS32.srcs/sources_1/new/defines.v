@@ -43,14 +43,16 @@
 `define MINIMIPS32_MFLO            8'h0D
 `define MINIMIPS32_SLL             8'h11
 `define MINIMIPS32_MULT            8'h14
+`define MINIMIPS32_MULTU           8'h15
 `define MINIMIPS32_ADD             8'h18 //ADDI共用
-`define MINIMIPS32_ADDIU           8'h19
+`define MINIMIPS32_ADDIU           8'h19 //ADDU共用
+`define MINIMIPS32_SUB             8'h1A 
 `define MINIMIPS32_SUBU            8'h1B
 `define MINIMIPS32_AND             8'h1C// ANDI共用
 `define MINIMIPS32_ORI             8'h1D
 `define MINIMIPS32_XORI            8'h1E
 `define MINIMIPS32_SLT             8'h26 //SLTI共用
-`define MINIMIPS32_SLTIU           8'h27
+`define MINIMIPS32_SLTIU           8'h27 //SLTU共用
 `define MINIMIPS32_LB              8'h90
 `define MINIMIPS32_LW              8'h92
 `define MINIMIPS32_SB              8'h98

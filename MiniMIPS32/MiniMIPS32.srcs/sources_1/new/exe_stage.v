@@ -36,7 +36,8 @@ module exe_stage (
     assign exe_din_o = (cpu_rst_n == `RST_ENABLE) ? 32'b0 : exe_din_i;
     
     wire [`REG_BUS       ]      logicres;       // 保存逻辑运算的结果
-    wire [`DOUBLE_REG_BUS       ]      mulres; //保存乘法运算结果
+    wire [`DOUBLE_REG_BUS       ]      sign_mulres; //保存有符号乘法运算结果
+    wire [`DOUBLE_REG_BUS       ]      unsign_mulres; //保存无符号乘法运算结果
     wire [`REG_BUS]             hi_t;          //保留HI寄存器的最新值
     wire [`REG_BUS]             lo_t;          //保留LO寄存器的最新值
     wire [`REG_BUS]             moveres;       //保存移动操作的结果
@@ -59,6 +60,7 @@ module exe_stage (
                       (exe_aluop_i == `MINIMIPS32_SW) ? (exe_src1_i + exe_src2_i) :
                       (exe_aluop_i == `MINIMIPS32_ADD) ? (exe_src1_i + exe_src2_i) : 
                       (exe_aluop_i == `MINIMIPS32_SUBU) ? (exe_src1_i + ~exe_src2_i + 1) : 
+                      (exe_aluop_i == `MINIMIPS32_SUB) ? (exe_src1_i + ~exe_src2_i + 1) : 
                       (exe_aluop_i == `MINIMIPS32_SLT) ? (($signed(exe_src1_i) < $signed(exe_src2_i)) ? 32'b1 : 32'b0) : 
                       (exe_aluop_i == `MINIMIPS32_SLTIU) ? ((exe_src1_i < exe_src2_i) ? 32'b1 : 32'b0) : 
                       (exe_aluop_i == `MINIMIPS32_ADDIU) ? (exe_src1_i + exe_src2_i) : `ZERO_WORD;
@@ -75,9 +77,11 @@ module exe_stage (
                      (exe_aluop_i == `MINIMIPS32_MFLO) ? lo_t : `ZERO_WORD;
    
    // 根据内部操作码aluop进行乘法运算，直接送入下一个阶段
-   assign mulres = ($signed(exe_src1_i) * $signed(exe_src2_i));
+   assign sign_mulres = ($signed(exe_src1_i) * $signed(exe_src2_i));
+   assign unsign_mulres = ($unsigned({1'b0,exe_src1_i}) * $unsigned({1'b0,exe_src2_i}));
    assign exe_hilo_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : //使能且aluop为0x14
-                       (exe_aluop_i == `MINIMIPS32_MULT) ? mulres : `ZERO_DWORD;
+                       (exe_aluop_i == `MINIMIPS32_MULT) ? sign_mulres : 
+                       (exe_aluop_i == `MINIMIPS32_MULTU) ? unsign_mulres : `ZERO_DWORD;
 
     assign exe_wa_o   = (cpu_rst_n   == `RST_ENABLE ) ? 5'b0 	 : exe_wa_i;
     assign exe_wreg_o = (cpu_rst_n   == `RST_ENABLE ) ? 1'b0 	 : exe_wreg_i;
