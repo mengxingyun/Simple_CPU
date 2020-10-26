@@ -49,8 +49,9 @@
 `define MINIMIPS32_SUB             8'h1A 
 `define MINIMIPS32_SUBU            8'h1B
 `define MINIMIPS32_AND             8'h1C// ANDI共用
-`define MINIMIPS32_ORI             8'h1D
-`define MINIMIPS32_XORI            8'h1E
+`define MINIMIPS32_ORI             8'h1D// OR共用
+`define MINIMIPS32_XORI            8'h1E//XOR共用
+`define MINIMIPS32_NOR             8'h1F
 `define MINIMIPS32_SLT             8'h26 //SLTI共用
 `define MINIMIPS32_SLTIU           8'h27 //SLTU共用
 `define MINIMIPS32_LB              8'h90

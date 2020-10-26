@@ -72,13 +72,17 @@ module id_stage(
     wire inst_sub = inst_reg & func[5] & ~func[4] & ~func[3] & ~func[2] & func[1] & ~func[0]; //22: sub(减法， 触发溢出异常)
     wire inst_sltu = inst_reg & func[5] & ~func[4] & func[3] & ~func[2] & func[1] & func[0];//23: sltu(rs和rt进行无符号比较)
     wire inst_multu = inst_reg & ~func[5] & func[4] & func[3] & ~func[2] & ~func[1] & func[0]; //24: multu(无符号乘法)
+    wire inst_xor = inst_reg & func[5] & ~func[4] & ~func[3] & func[2] & func[1] & ~func[0]; //25: xor(按位异或)
+    wire inst_or = inst_reg & func[5] & ~func[4] & ~func[3] & func[2] & ~func[1] & func[0]; //26: or(按位或)
+    wire inst_nor = inst_reg & func[5] & ~func[4] & ~func[3] & func[2] & func[1] & func[0]; //27: nor(按位或非)
+    
     /*------------------------------------------------------------------------------*/
 
     /*-------------------- 第二级译码逻辑：生成具体控制信号 --------------------*/
     // 操作类型alutype
     assign id_alutype_o[2] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : inst_sll;
     assign id_alutype_o[1] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mfhi | inst_mflo | inst_ori | inst_lui | 
-                                                                  inst_andi | inst_xori);
+                                                                  inst_andi | inst_xori | inst_or | inst_xor | inst_nor);
     assign id_alutype_o[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mfhi | inst_mflo | inst_lb | inst_lw | inst_sb | inst_sh | 
                                                                   inst_sw | inst_add | inst_subu | inst_slt | inst_addiu | 
                                                                   inst_sltiu | inst_addi | inst_slti | inst_addu | inst_sub | 
@@ -91,23 +95,27 @@ module id_stage(
     assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_ori | inst_lw | inst_lb |
                                                                   inst_sb | inst_sw | inst_sh | inst_add | inst_subu | inst_addiu | 
                                                                   inst_addi | inst_addi | inst_xori | inst_addu | inst_sub | 
-                                                                  inst_multu );
+                                                                  inst_multu | inst_or | inst_xor | inst_nor);
     assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mflo | inst_mfhi | inst_ori | inst_sb | inst_sh |
                                                                   inst_sw | inst_add | inst_subu | inst_addiu | inst_addi | 
-                                                                  inst_andi | inst_xori | inst_addu | inst_sub);
+                                                                  inst_andi | inst_xori | inst_addu | inst_sub | inst_or | 
+                                                                  inst_xor | inst_nor);
     assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_mfhi | inst_mflo | inst_ori | inst_lui | 
                                                                   inst_slt | inst_sltiu | inst_slti | inst_andi | inst_xori | 
-                                                                  inst_sltu | inst_multu );
+                                                                  inst_sltu | inst_multu | inst_or | inst_xor | inst_nor);
     assign id_aluop_o[1]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lw | inst_sw | inst_subu | inst_slt | inst_sltiu | 
-                                                                  inst_slti | inst_xori | inst_sub | inst_sltu);
+                                                                  inst_slti | inst_xori | inst_sub | inst_sltu | inst_xor | 
+                                                                  inst_nor );
     assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mflo | inst_sll | inst_ori | inst_lui | inst_sh | inst_subu |
-                                                                  inst_addiu | inst_sltiu | inst_addu | inst_sltu | inst_multu );
+                                                                  inst_addiu | inst_sltiu | inst_addu | inst_sltu | inst_multu | 
+                                                                  inst_or | inst_nor);
 
     // 写通用寄存器使能信号
     assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : ( inst_and | inst_mfhi | inst_mflo | inst_sll | inst_ori | 
                                                                   inst_lui | inst_lb | inst_lw | inst_add | inst_subu | inst_slt | 
                                                                   inst_addiu | inst_sltiu |  inst_addi | inst_slti | inst_andi | 
-                                                                  inst_xori | inst_addu | inst_sub | inst_sltu );
+                                                                  inst_xori | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor | 
+                                                                  inst_xor );
     
     //写HILO寄存器使能信号
     assign id_whilo_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mult | inst_multu);
@@ -135,11 +143,11 @@ module id_stage(
     assign rreg1 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_ori | inst_lb | inst_lw | inst_sb | inst_sh | 
                                                         inst_sw | inst_add | inst_subu | inst_sltiu | inst_slt | inst_addiu | 
                                                         inst_addi | inst_slti | inst_xori | inst_andi | inst_addu | inst_sub | 
-                                                        inst_multu | inst_sltu);
+                                                        inst_multu | inst_sltu | inst_or | inst_xor | inst_nor);
     // 读通用寄存器堆读端口2使能信号
     assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_sb | inst_sh | inst_sw | 
                                                         inst_add | inst_subu | inst_slt | inst_addu | inst_sub | inst_multu | 
-                                                        inst_sltu);
+                                                        inst_sltu | inst_or | inst_xor | inst_nor);
     
     /*------------------------------------------------------------------------------*/
 
