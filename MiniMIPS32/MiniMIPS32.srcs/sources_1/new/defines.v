@@ -41,6 +41,8 @@
 `define MINIMIPS32_LUI             8'h05
 `define MINIMIPS32_MFHI            8'h0C
 `define MINIMIPS32_MFLO            8'h0D
+`define MINIMIPS32_MTHI            8'h0E
+`define MINIMIPS32_MTLO            8'h0F
 `define MINIMIPS32_SLL             8'h11//SLLV共用
 `define MINIMIPS32_SRL             8'h12//SRLV共用
 `define MINIMIPS32_SRA             8'h13//SRAV共用

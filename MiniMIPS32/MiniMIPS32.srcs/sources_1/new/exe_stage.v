@@ -84,7 +84,9 @@ module exe_stage (
    assign unsign_mulres = ($unsigned({1'b0,exe_src1_i}) * $unsigned({1'b0,exe_src2_i}));
    assign exe_hilo_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : //Ê¹ÄÜÇÒaluopÎª0x14
                        (exe_aluop_i == `MINIMIPS32_MULT) ? sign_mulres : 
-                       (exe_aluop_i == `MINIMIPS32_MULTU) ? unsign_mulres : `ZERO_DWORD;
+                       (exe_aluop_i == `MINIMIPS32_MULTU) ? unsign_mulres : 
+                       (exe_aluop_i == `MINIMIPS32_MTHI) ? {exe_src1_i, lo_t} : 
+                       (exe_aluop_i == `MINIMIPS32_MTLO) ? {hi_t, exe_src1_i} : `ZERO_DWORD;
 
     assign exe_wa_o   = (cpu_rst_n   == `RST_ENABLE ) ? 5'b0 	 : exe_wa_i;
     assign exe_wreg_o = (cpu_rst_n   == `RST_ENABLE ) ? 1'b0 	 : exe_wreg_i;
