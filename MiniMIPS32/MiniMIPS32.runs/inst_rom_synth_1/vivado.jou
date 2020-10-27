@@ -2,8 +2,8 @@
 # Vivado v2017.3 (64-bit)
 # SW Build 2018833 on Wed Oct  4 19:58:22 MDT 2017
 # IP Build 2016188 on Wed Oct  4 21:52:56 MDT 2017
-# Start of session at: Thu Oct 22 10:10:48 2020
-# Process ID: 8484
+# Start of session at: Wed Oct 28 00:03:53 2020
+# Process ID: 16184
 # Current directory: D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1
 # Command line: vivado.exe -log inst_rom.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source inst_rom.tcl
 # Log file: D:/Code/Verilog_HDL/test/MiniMIPS32/MiniMIPS32.runs/inst_rom_synth_1/inst_rom.vds

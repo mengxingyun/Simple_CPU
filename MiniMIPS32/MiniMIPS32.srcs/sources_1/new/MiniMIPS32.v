@@ -170,7 +170,7 @@ module MiniMIPS32(
     memwb_reg memwb_reg0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
         .mem_wa(mem_wa_o), .mem_wreg(mem_wreg_o), .mem_dreg(mem_dreg_o),
         .mem_whilo(mem_whilo_o), .mem_hilo(mem_hilo_o),
-        .mem_reg(mem_mreg_o), .dre(mem_dre_o), .mem_sign(mem_sign_o),
+        .mem_mreg(mem_mreg_o), .mem_dre(mem_dre_o), .mem_sign(mem_sign_o),
         .wb_wa(wb_wa_i), .wb_wreg(wb_wreg_i), .wb_dreg(wb_dreg_i),
         .wb_whilo(wb_whilo_i), .wb_hilo(wb_hilo_i),
         .wb_mreg(wb_mreg_i), .wb_dre(wb_dre_i), .wb_sign(wb_sign_i)
