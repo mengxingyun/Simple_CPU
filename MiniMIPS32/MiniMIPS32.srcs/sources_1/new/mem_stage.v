@@ -21,6 +21,7 @@ module mem_stage (
     output wire [`DOUBLE_REG_BUS]       mem_hilo_o,
     output wire                         mem_mreg_o,
     output wire [`BSEL_BUS]             dre,
+    output wire                         sign, //加载数据有无符号
 
     
     //送至数据存储器的信号
@@ -40,27 +41,36 @@ module mem_stage (
     
     //确定当前的访存指令
     wire inst_lb = (mem_aluop_i == 8'h90);
+    wire inst_lh = (mem_aluop_i == 8'h91);
     wire inst_lw = (mem_aluop_i == 8'h92);
+    wire inst_lbu = (mem_aluop_i == 8'h93);
+    wire inst_lhu = (mem_aluop_i == 8'h94);
     wire inst_sb = (mem_aluop_i == 8'h98);
     wire inst_sh = (mem_aluop_i == 8'h99);
     wire inst_sw = (mem_aluop_i == 8'h9A); 
+    
+    assign sign   = inst_lb | inst_lw | inst_lh;
     
     //获得数据存储器的访问地址
     assign daddr = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : mem_wd_i;
     
     //获得数据存储器读字节使能信号
     assign dre[3] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : 
-                    ((inst_lb & (daddr[1:0] == 2'b00)) | inst_lw);
+                    ((inst_lb & (daddr[1:0] == 2'b00)) | inst_lw | (inst_lbu & (daddr[1:0] == 2'b00)) | 
+                    (inst_lh & (daddr[1:0] == 2'b00)) | (inst_lhu & (daddr[1:0] == 2'b00)));
     assign dre[2] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
-                    ((inst_lb & (daddr[1:0] == 2'b01)) | inst_lw);
+                    ((inst_lb & (daddr[1:0] == 2'b01)) | inst_lw | (inst_lbu & (daddr[1:0] == 2'b01)) | 
+                    (inst_lh & (daddr[1:0] == 2'b00)) | (inst_lhu & (daddr[1:0] == 2'b00)));
     assign dre[1] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
-                    ((inst_lb & (daddr[1:0] == 2'b10)) | inst_lw);
+                    ((inst_lb & (daddr[1:0] == 2'b10)) | inst_lw | (inst_lbu & (daddr[1:0] == 2'b10)) | 
+                    (inst_lh & (daddr[1:0] == 2'b10)) | (inst_lhu & (daddr[1:0] == 2'b10)));
     assign dre[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
-                    ((inst_lb & (daddr[1:0] == 2'b11)) | inst_lw);
+                    ((inst_lb & (daddr[1:0] == 2'b11)) | inst_lw | (inst_lbu & (daddr[1:0] == 2'b11)) | 
+                    (inst_lh & (daddr[1:0] == 2'b10)) | (inst_lhu & (daddr[1:0] == 2'b10)));
     
     //获得数据存储器使能信号
     assign dce = (cpu_rst_n == `RST_ENABLE) ? 1'b0 :
-                 (inst_lb | inst_lw | inst_sb | inst_sh | inst_sw);
+                 (inst_lb | inst_lw | inst_sb | inst_sh | inst_sw | inst_lbu | inst_lh | inst_lhu);
     
     //获得数据存储器写字节使能信号              
     assign we[3] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : 

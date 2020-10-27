@@ -78,6 +78,7 @@ module MiniMIPS32(
     wire [`DOUBLE_REG_BUS] mem_hilo_o;
     wire                   mem_mreg_o;
     wire [`BSEL_BUS]       mem_dre_o;
+    wire                   mem_sign_o;
     
     wire 				   wb_wreg_i;
     wire [`REG_ADDR_BUS  ] wb_wa_i;
@@ -86,6 +87,7 @@ module MiniMIPS32(
     wire [`DOUBLE_REG_BUS] wb_hilo_i;
     wire                   wb_mreg_i;
     wire [`BSEL_BUS]       wb_dre_i;
+    wire                   wb_sign_i;
 
     wire 				   wb_wreg_o;
     wire [`REG_ADDR_BUS  ] wb_wa_o;
@@ -161,23 +163,24 @@ module MiniMIPS32(
         .mem_mreg_i(mem_mreg_i), .mem_din_i(mem_din_i),
         .mem_wa_o(mem_wa_o), .mem_wreg_o(mem_wreg_o), .mem_dreg_o(mem_dreg_o),
         .mem_whilo_o(mem_whilo_o), .mem_hilo_o(mem_hilo_o),
-        .mem_mreg_o(mem_mreg_o), .dre(mem_dre_o), .dce(dce), .daddr(daddr), .we(we), .din(din)
+        .mem_mreg_o(mem_mreg_o), .dre(mem_dre_o), .dce(dce), .daddr(daddr), .we(we), .din(din),
+        .sign(mem_sign_o)
     );
     	
     memwb_reg memwb_reg0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
         .mem_wa(mem_wa_o), .mem_wreg(mem_wreg_o), .mem_dreg(mem_dreg_o),
         .mem_whilo(mem_whilo_o), .mem_hilo(mem_hilo_o),
-        .mem_reg(mem_mreg_o), .dre(mem_dre_o),
+        .mem_reg(mem_mreg_o), .dre(mem_dre_o), .mem_sign(mem_sign_o),
         .wb_wa(wb_wa_i), .wb_wreg(wb_wreg_i), .wb_dreg(wb_dreg_i),
         .wb_whilo(wb_whilo_i), .wb_hilo(wb_hilo_i),
-        .wb_mreg(wb_mreg_i), .wb_dre(wb_dre_i)
+        .wb_mreg(wb_mreg_i), .wb_dre(wb_dre_i), .wb_sign(wb_sign_i)
     );
 
     wb_stage wb_stage0(
         .cpu_rst_n(cpu_rst_n),
         .wb_wa_i(wb_wa_i), .wb_wreg_i(wb_wreg_i), .wb_dreg_i(wb_dreg_i), 
         .wb_whilo_i(wb_whilo_i), .wb_hilo_i(wb_hilo_i),
-        .wb_mreg_i(wb_mreg_i), .wb_dre_i(wb_dre_i),
+        .wb_mreg_i(wb_mreg_i), .wb_dre_i(wb_dre_i), .sign(wb_sign_i),
         .dm(dm),
         .wb_wa_o(wb_wa_o), .wb_wreg_o(wb_wreg_o), .wb_wd_o(wb_wd_o),
         .wb_whilo_o(wb_whilo_o), .wb_hilo_o(wb_hilo_o)

@@ -59,7 +59,10 @@
 `define MINIMIPS32_SLT             8'h26 //SLTI共用
 `define MINIMIPS32_SLTIU           8'h27 //SLTU共用
 `define MINIMIPS32_LB              8'h90
+`define MINIMIPS32_LH              8'h91
 `define MINIMIPS32_LW              8'h92
+`define MINIMIPS32_LBU             8'h93
+`define MINIMIPS32_LHU             8'h94
 `define MINIMIPS32_SB              8'h98
 `define MINIMIPS32_SH              8'h99 //存半字
 `define MINIMIPS32_SW              8'h9A

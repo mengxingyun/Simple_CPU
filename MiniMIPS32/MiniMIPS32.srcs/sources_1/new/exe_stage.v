@@ -56,6 +56,9 @@ module exe_stage (
     assign arithres = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :
                       (exe_aluop_i == `MINIMIPS32_LB) ? (exe_src1_i + exe_src2_i) : 
                       (exe_aluop_i == `MINIMIPS32_LW) ? (exe_src1_i + exe_src2_i) : 
+                      (exe_aluop_i == `MINIMIPS32_LBU) ? (exe_src1_i + exe_src2_i) :
+                      (exe_aluop_i == `MINIMIPS32_LH) ? (exe_src1_i + exe_src2_i) :
+                      (exe_aluop_i == `MINIMIPS32_LHU) ? (exe_src1_i + exe_src2_i) :
                       (exe_aluop_i == `MINIMIPS32_SB) ? (exe_src1_i + exe_src2_i) :
                       (exe_aluop_i == `MINIMIPS32_SH) ? (exe_src1_i + exe_src2_i) :
                       (exe_aluop_i == `MINIMIPS32_SW) ? (exe_src1_i + exe_src2_i) :

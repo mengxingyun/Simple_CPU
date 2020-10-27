@@ -12,6 +12,7 @@ module memwb_reg (
 	input  wire [`DOUBLE_REG_BUS]   mem_hilo,
 	input  wire [`BSEL_BUS]          mem_dre,
 	input  wire                     mem_mreg,
+	input  wire                     mem_sign,
 
 	// 送至写回阶段的信息 
 	output reg  [`REG_ADDR_BUS  ]   wb_wa,
@@ -20,7 +21,8 @@ module memwb_reg (
 	output reg                      wb_whilo,
 	output reg  [`DOUBLE_REG_BUS]   wb_hilo,
 	output reg  [`BSEL_BUS]         wb_dre,
-	output reg                      wb_mreg          
+	output reg                      wb_mreg,
+	output reg                      wb_sign          
     );
 
     always @(posedge cpu_clk_50M) begin
@@ -33,6 +35,7 @@ module memwb_reg (
 			wb_hilo     <= `ZERO_DWORD;
 			wb_dre      <= 4'b0;
 			wb_mreg     <= `WRITE_DISABLE;
+			wb_sign     <= 1'b0;
 		end
 		// 将来自访存阶段的信息寄存并送至写回阶段
 		else begin
@@ -43,6 +46,7 @@ module memwb_reg (
 			wb_hilo     <= mem_hilo;
 			wb_mreg     <= mem_mreg;
 			wb_dre      <= mem_dre;
+			wb_sign     <= mem_sign;
 		end
 	end
 

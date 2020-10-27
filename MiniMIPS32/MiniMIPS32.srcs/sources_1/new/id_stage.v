@@ -82,6 +82,9 @@ module id_stage(
     wire inst_srlv = inst_reg & ~func[5] & ~func[4] & ~func[3] & func[2] & func[1] & ~func[0]; //32: srlv(逻辑右移，移位位数来自rs的低五位)
     wire inst_mthi = inst_reg & ~func[5] & func[4] & ~func[3] & ~func[2] & ~func[1] & func[0]; //33: mthi(rs移至HI寄存器)
     wire inst_mtlo = inst_reg & ~func[5] & func[4] & ~func[3] & ~func[2] & func[1] & func[0]; //34: mtlo(rs移至LO寄存器)
+    wire inst_lbu = op[5] & ~op[4] & ~op[3] & op[2] & ~op[1] & ~op[0]; //35: lbu(rs + 立即数有符号扩展作为访存地址，无符号扩展byte)
+    wire inst_lh = op[5] & ~op[4] & ~op[3] & ~op[2] & ~op[1] & op[0]; //36: lh(加载两字节符号扩展)
+    wire inst_lhu = op[5] & ~op[4] & ~op[3] & op[2] & ~op[1] & op[0]; //37: lhu(加载两个字节无符号扩展)
     /*------------------------------------------------------------------------------*/
 
     /*-------------------- 第二级译码逻辑：生成具体控制信号 --------------------*/
@@ -94,17 +97,20 @@ module id_stage(
     assign id_alutype_o[0] = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mfhi | inst_mflo | inst_lb | inst_lw | inst_sb | inst_sh | 
                                                                   inst_sw | inst_add | inst_subu | inst_slt | inst_addiu | 
                                                                   inst_sltiu | inst_addi | inst_slti | inst_addu | inst_sub | 
-                                                                  inst_sltu | inst_mtlo | inst_mthi);
+                                                                  inst_sltu | inst_mtlo | inst_mthi | inst_lbu | inst_lh | 
+                                                                  inst_lhu );
 
     // 内部操作码aluop
-    assign id_aluop_o[7]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw | inst_sb | inst_sh | inst_sw);
+    assign id_aluop_o[7]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw | inst_sb | inst_sh | inst_sw | inst_lh | 
+                                                                  inst_lbu | inst_lhu);
     assign id_aluop_o[6]   = 1'b0;
     assign id_aluop_o[5]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_slt | inst_sltiu | inst_slti | inst_sltu);
     assign id_aluop_o[4]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_ori | inst_lw | inst_lb |
                                                                   inst_sb | inst_sw | inst_sh | inst_add | inst_subu | inst_addiu | 
                                                                   inst_addi | inst_addi | inst_xori | inst_addu | inst_sub | 
                                                                   inst_multu | inst_or | inst_xor | inst_nor | inst_sllv | 
-                                                                  inst_srl | inst_srlv | inst_sra | inst_srav);
+                                                                  inst_srl | inst_srlv | inst_sra | inst_srav | inst_lh | 
+                                                                  inst_lbu | inst_lhu);
     assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mflo | inst_mfhi | inst_ori | inst_sb | inst_sh |
                                                                   inst_sw | inst_add | inst_subu | inst_addiu | inst_addi | 
                                                                   inst_andi | inst_xori | inst_addu | inst_sub | inst_or | 
@@ -112,14 +118,15 @@ module id_stage(
     assign id_aluop_o[2]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_mfhi | inst_mflo | inst_ori | inst_lui | 
                                                                   inst_slt | inst_sltiu | inst_slti | inst_andi | inst_xori | 
                                                                   inst_sltu | inst_multu | inst_or | inst_xor | inst_nor | inst_mthi | 
-                                                                  inst_mtlo );
+                                                                  inst_mtlo | inst_lhu );
     assign id_aluop_o[1]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lw | inst_sw | inst_subu | inst_slt | inst_sltiu | 
                                                                   inst_slti | inst_xori | inst_sub | inst_sltu | inst_xor | 
                                                                   inst_nor | inst_srl | inst_srlv | inst_sra | inst_srav | 
-                                                                  inst_mthi | inst_mtlo );
+                                                                  inst_mthi | inst_mtlo | inst_lbu);
     assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mflo | inst_sll | inst_ori | inst_lui | inst_sh | inst_subu |
                                                                   inst_addiu | inst_sltiu | inst_addu | inst_sltu | inst_multu | 
-                                                                  inst_or | inst_nor | inst_sllv | inst_sra | inst_srav | inst_mtlo);
+                                                                  inst_or | inst_nor | inst_sllv | inst_sra | inst_srav | inst_mtlo | 
+                                                                  inst_lh | inst_lbu);
 
     // 写通用寄存器使能信号
     assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : ( inst_and | inst_mfhi | inst_mflo | inst_sll | inst_ori | 
@@ -127,7 +134,7 @@ module id_stage(
                                                                   inst_addiu | inst_sltiu |  inst_addi | inst_slti | inst_andi | 
                                                                   inst_xori | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor | 
                                                                   inst_xor | inst_srl | inst_srlv | inst_sllv | inst_sra |
-                                                                  inst_srav);
+                                                                  inst_srav | inst_lbu | inst_lh | inst_lhu);
     
     //写HILO寄存器使能信号
     assign id_whilo_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mult | inst_multu | inst_mthi | inst_mtlo);
@@ -137,26 +144,29 @@ module id_stage(
     
     //立即数使能信号
     wire immsel = inst_ori | inst_lui | inst_lw | inst_lb | inst_sb | inst_sh | inst_sw | inst_addiu | inst_sltiu | 
-                   inst_addi | inst_slti | inst_andi | inst_xori;
+                   inst_addi | inst_slti | inst_andi | inst_xori | inst_lbu | inst_lh | inst_lhu;
     
     //目的寄存器选择信号(rt还是rd)
-    wire rtsel = inst_ori | inst_lui | inst_lb | inst_lw | inst_addiu | inst_sltiu | inst_addi | inst_slti | inst_andi | inst_xori;
+    wire rtsel = inst_ori | inst_lui | inst_lb | inst_lw | inst_addiu | inst_sltiu | inst_addi | inst_slti | inst_andi | inst_xori | 
+                  inst_lbu | inst_lh | inst_lhu;
     
     //符号扩展使能信号
-    wire sext = inst_lb | inst_lw | inst_sb | inst_sh | inst_sw | inst_addiu | inst_sltiu | inst_addi | inst_slti;
+    wire sext = inst_lb | inst_lw | inst_sb | inst_sh | inst_sw | inst_addiu | inst_sltiu | inst_addi | inst_slti | inst_lbu | 
+                 inst_lh | inst_lhu;
     
     //加载高半字使能信号
     wire upper = inst_lui;
     
     //存储器到寄存器使能信号
-    assign id_mreg_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw);
+    assign id_mreg_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lb | inst_lw | inst_lh | inst_lbu | inst_lhu);
     
     // 读通用寄存器堆端口1使能信号
     assign rreg1 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_ori | inst_lb | inst_lw | inst_sb | inst_sh | 
                                                         inst_sw | inst_add | inst_subu | inst_sltiu | inst_slt | inst_addiu | 
                                                         inst_addi | inst_slti | inst_xori | inst_andi | inst_addu | inst_sub | 
                                                         inst_multu | inst_sltu | inst_or | inst_xor | inst_nor | inst_sllv | 
-                                                        inst_srlv | inst_srav | inst_mthi | inst_mtlo);
+                                                        inst_srlv | inst_srav | inst_mthi | inst_mtlo | inst_lbu | inst_lh |
+                                                        inst_lhu);
     // 读通用寄存器堆读端口2使能信号
     assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_sb | inst_sh | inst_sw | 
                                                         inst_add | inst_subu | inst_slt | inst_addu | inst_sub | inst_multu | 
