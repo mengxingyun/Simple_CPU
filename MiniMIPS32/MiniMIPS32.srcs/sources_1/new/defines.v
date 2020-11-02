@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+  `timescale 1ns / 1ps
 
 /*------------------- 全局参数 -------------------*/
 `define RST_ENABLE      1'b0                // 复位信号有效  RST_ENABLE
@@ -71,3 +71,4 @@
 `define REG_ADDR_BUS    4 : 0               // 寄存器的地址宽度
 `define REG_NUM         32                  // 寄存器数量32个
 `define REG_NOP         5'b00000            // 零号寄存器
+

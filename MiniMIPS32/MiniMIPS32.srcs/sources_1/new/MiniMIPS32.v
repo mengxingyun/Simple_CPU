@@ -108,6 +108,10 @@ module MiniMIPS32(
         .rd1(rd1), .rd2(rd2),
         .rreg1(re1), .rreg2(re2), 	  
         .ra1(ra1), .ra2(ra2), 
+        /*-------------------------------------数据相关添加begin-------------------------------*/
+        .exe2id_wreg(exe_wreg_o), .exe2id_wa(exe_wa_o), .exe2id_wd(exe_wd_o),
+        .mem2id_wreg(mem_wreg_o), .mem2id_wa(mem_wa_o), .mem2id_wd(mem_dreg_o),
+        /*-------------------------------------数据相关添加end---------------------------------*/
         .id_aluop_o(id_aluop_o), .id_alutype_o(id_alutype_o),
         .id_src1_o(id_src1_o), .id_src2_o(id_src2_o),
         .id_wa_o(id_wa_o), .id_wreg_o(id_wreg_o), .id_whilo_o(id_whilo_o),
@@ -139,6 +143,10 @@ module MiniMIPS32(
         .exe_whilo_i(exe_whilo_i),
         .hi_i(exe_hi_i), .lo_i(exe_lo_i),
         .exe_mreg_i(exe_mreg_i), .exe_din_i(exe_din_i),
+        /*------------------------------消除数据相关添加begin--------------------------*/
+        .mem2exe_whilo(mem_whilo_o), .mem2exe_hilo(mem_hilo_o),
+        .wb2exe_whilo(wb_whilo_i), .wb2exe_hilo(wb_hilo_i),
+        /*------------------------------消除数据相关添加end----------------------------*/
         .exe_aluop_o(exe_aluop_o),
         .exe_wa_o(exe_wa_o), .exe_wreg_o(exe_wreg_o), .exe_wd_o(exe_wd_o),
         .exe_whilo_o(exe_whilo_o), .exe_hilo_o(exe_hilo_o),

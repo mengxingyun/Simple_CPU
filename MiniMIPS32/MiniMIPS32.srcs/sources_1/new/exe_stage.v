@@ -17,6 +17,16 @@ module exe_stage (
     // 从hilo寄存器获得的数据       
     input wire [`REG_BUS]          hi_i,
     input wire [`REG_BUS]          lo_i,     
+    
+    /*------------------------------------------消除数据相关begin-------------------------------*/
+    //从访存阶段获得的HI、LO寄存器的值
+    input wire                     mem2exe_whilo,
+    input wire [`DOUBLE_REG_BUS]   mem2exe_hilo,
+    
+    //从写回阶段获得的HI、LO寄存器的值
+    input wire                     wb2exe_whilo,
+    input wire [`DOUBLE_REG_BUS]   wb2exe_hilo,
+    /*------------------------------------------消除数据相关end---------------------------------*/
 
     // 送至执行阶段的信息
     output wire [`ALUOP_BUS	    ] 	exe_aluop_o,
@@ -76,8 +86,15 @@ module exe_stage (
                       (exe_aluop_i == `MINIMIPS32_SRA) ? (({32{exe_src2_i[31]}} << (6'd32-{1'b0, exe_src1_i[4:0]})) | exe_src2_i >> exe_src1_i[4:0]) : `ZERO_WORD;
     
     // 根据内部操作码aluop进行数据移动，得到最新的HI、LO寄存器的值
-    assign hi_t = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : hi_i;
-    assign lo_t = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : lo_i;
+    /*-------------------------------------------数据相关修改begin---------------------------------*/
+    assign hi_t = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :
+                  (mem2exe_whilo == `WRITE_ENABLE) ? mem2exe_hilo[63:32] :
+                  (wb2exe_whilo == `WRITE_ENABLE) ? wb2exe_hilo[63:32] : hi_i;
+    assign lo_t = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : 
+                  (mem2exe_whilo == `WRITE_ENABLE) ? mem2exe_hilo[31:0] :
+                  (wb2exe_whilo == `WRITE_ENABLE) ? wb2exe_hilo[31:0] : lo_i;
+   /*--------------------------------------------数据相关修改end---------------------------------*/
+                  
     assign moveres = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : 
                      (exe_aluop_i == `MINIMIPS32_MFHI) ? hi_t :
                      (exe_aluop_i == `MINIMIPS32_MFLO) ? lo_t : `ZERO_WORD;

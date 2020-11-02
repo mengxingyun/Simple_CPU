@@ -12,6 +12,18 @@ module id_stage(
     // 从通用寄存器堆读出的数据 
     input  wire [`REG_BUS      ]    rd1,
     input  wire [`REG_BUS      ]    rd2,
+    
+    /*------------------------------消除数据相关begin--------------------------------*/
+    //从执行阶段获得的写回信号
+    input  wire                     exe2id_wreg,//写寄存器使能信号
+    input  wire [`REG_ADDR_BUS]     exe2id_wa,//写寄存器地址
+    input  wire [`INST_BUS]         exe2id_wd,//写寄存器数据
+    
+    //从访存阶段获得的写回信号
+    input  wire                     mem2id_wreg,
+    input  wire [`REG_ADDR_BUS]     mem2id_wa,
+    input  wire [`INST_BUS]         mem2id_wd,
+    /*------------------------------消除数据相关end--------------------------------*/
       
     // 送至执行阶段的译码信息
     output wire [`ALUTYPE_BUS  ]    id_alutype_o,
@@ -187,16 +199,38 @@ module id_stage(
     // 获得待写入目的寄存器的地址（rt或rd）
     assign id_wa_o      = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : (rtsel == `RT_ENABLE) ? rt : rd;
     
-    //获得访存阶段要存入数据存储器的数据(rt读出的rd2)
-    assign id_din_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : rd2;             
-
-    // 获得源操作数1。如果shift信号有效，则源操作数1为移位位数；否则为从读通用寄存器堆端口1获得的数据
+    /*-----------------------------------------消除数据相关begin--------------------------------*/
+    wire [1:0] fwrd1 = (cpu_rst_n == `RST_ENABLE) ? 2'b00 : 
+                        (exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra1 && rreg1 == `READ_ENABLE) ? 2'b01 :
+                        (mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra1 && rreg1 == `READ_ENABLE) ? 2'b10 :
+                        (rreg1 == `READ_ENABLE) ? 2'b11 : 2'b00;
+    
+    wire [1:0] fwrd2 = (cpu_rst_n == `RST_ENABLE) ? 2'b00 : 
+                        (exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra2 && rreg2 == `READ_ENABLE) ? 2'b01 :
+                        (mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra2 && rreg2 == `READ_ENABLE) ? 2'b10 :
+                        (rreg1 == `READ_ENABLE) ? 2'b11 : 2'b00;
+    /*-----------------------------------------消除数据相关end--------------------------------*/
+    
+    /*-----------------------------------------数据相关修改begin------------------------------*/
+    //获得访存阶段要存入数据存储器的数据(可能来自执行阶段的数据、可能来自访存阶段前推的数据、也可能来自通用寄存器堆的rd2)
+    assign id_din_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :
+                      (fwrd2 == 2'b01) ? exe2id_wd :
+                      (fwrd2 == 2'b10) ? mem2id_wd : 
+                      (fwrd2 == 2'b11) ? rd2 : `ZERO_WORD;         
+    
+    // 获得源操作数1。源操作数1可能是移位位数、来自执行阶段前推的数据、来自访存阶段前推的数据、也可能来自通用寄存器堆的读端口1
     assign id_src1_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :
                        (shift == `SHIFT_ENABLE)   ? {27'b0, sa} :
-                       (rreg1 == `READ_ENABLE   ) ? rd1 : `ZERO_WORD;
-
+                       (fwrd1 == 2'b01) ? exe2id_wd :
+                       (fwrd1 == 2'b10) ? mem2id_wd :  
+                       (fwrd1 == 2'b11) ? rd1 : `ZERO_WORD;
+    
     // 获得源操作数2。如果immsel信号有效，则源操作数1为立即数；否则为从读通用寄存器堆端口2获得的数据
     assign id_src2_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :
                        (immsel == `IMM_ENABLE) ? imm_ext :
-                       (rreg2 == `READ_ENABLE   ) ? rd2 : `ZERO_WORD;
+                       (fwrd2 == 2'b01) ? exe2id_wd : 
+                       (fwrd2 == 2'b10) ? mem2id_wd :
+                       (fwrd2 == 2'b11) ? rd2 : `ZERO_WORD;
+    /*-----------------------------------------数据相关修改end--------------------------------*/
+    
 endmodule
