@@ -25,6 +25,10 @@
 `define MREG_ENABLE     1'b1                // 写回阶段存储器结果选择信号
 `define BSEL_BUS        3 : 0               // 数据存储器字节选择信号宽度
 `define PC_INIT         32'h00000000        // PC初始值
+/*-----------------------------------转移指令添加begin----------------------------*/
+`define JUMP_BUS        25: 0              //J型指令中instr_index字段的宽度
+`define JTSEL_BUS       1 : 0              //转移地址选择信号的宽度    
+/*-----------------------------------转移指令添加end------------------------------*/
 
 /*------------------- 指令字参数 -------------------*/
 `define INST_ADDR_BUS   31: 0               // 指令的地址宽度
@@ -36,6 +40,9 @@
 `define LOGIC           3'b010
 `define MOVE            3'b011
 `define SHIFT           3'b100
+/*---------------------转移指令添加begin--------------------*/
+`define JUMP            3'b101
+/*---------------------转移指令添加end----------------------*/
 
 // 内部操作码aluop
 `define MINIMIPS32_LUI             8'h05
@@ -58,6 +65,11 @@
 `define MINIMIPS32_NOR             8'h1F
 `define MINIMIPS32_SLT             8'h26 //SLTI共用
 `define MINIMIPS32_SLTIU           8'h27 //SLTU共用
+`define MINIMIPS32_J               8'h2C
+`define MINIMIPS32_JR              8'h2D
+`define MINIMIPS32_JAL             8'h2E
+`define MINIMIPS32_BEQ             8'h30
+`define MINIMIPS32_BNE             8'h31
 `define MINIMIPS32_LB              8'h90
 `define MINIMIPS32_LH              8'h91
 `define MINIMIPS32_LW              8'h92

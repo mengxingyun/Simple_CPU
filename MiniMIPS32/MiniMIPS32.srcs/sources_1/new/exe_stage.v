@@ -27,6 +27,7 @@ module exe_stage (
     input wire                     wb2exe_whilo,
     input wire [`DOUBLE_REG_BUS]   wb2exe_hilo,
     /*------------------------------------------消除数据相关end---------------------------------*/
+    input wire [`INST_ADDR_BUS]    ret_addr,
 
     // 送至执行阶段的信息
     output wire [`ALUOP_BUS	    ] 	exe_aluop_o,
@@ -116,6 +117,7 @@ module exe_stage (
                       (exe_alutype_i == `LOGIC    ) ? logicres  : 
                       (exe_alutype_i == `MOVE ) ? moveres : 
                       (exe_alutype_i == `SHIFT) ? shiftres : 
-                      (exe_alutype_i == `ARITH) ? arithres : `ZERO_WORD;
+                      (exe_alutype_i == `ARITH) ? arithres : 
+                      (exe_alutype_i == `JUMP) ? ret_addr : `ZERO_WORD;
 
 endmodule

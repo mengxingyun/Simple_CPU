@@ -16,6 +16,14 @@ module MiniMIPS32(
     output wire [`INST_BUS]      din,
     input  wire [`INST_BUS]      dm
     );
+/*-------------------------------转移指令添加begin-------------------------------*/
+    wire [`WORD_BUS]        jump_addr_1;
+    wire [`WORD_BUS]        jump_addr_2;
+    wire [`WORD_BUS]        jump_addr_3;
+    wire [`JTSEL_BUS]       jtsel;
+    wire [`INST_ADDR_BUS]   if_pc_plus_4;
+    wire [`INST_ADDR_BUS]   id_pc_plus_4;
+/*-------------------------------转移指令添加end---------------------------------*/
 
     wire [`WORD_BUS      ] pc;
 
@@ -39,6 +47,11 @@ module MiniMIPS32(
     wire                   id_whilo_o;
     wire                   id_mreg_o;
     wire [`REG_BUS]        id_din_o;
+    
+/*------------------------------------------转移指令添加begin---------------------------------*/
+    wire [`REG_BUS]        id_ret_addr;
+    wire [`REG_BUS]        exe_ret_addr;
+/*------------------------------------------转移指令添加end-----------------------------------*/
     
     wire [`ALUOP_BUS     ] exe_aluop_i;
     wire [`ALUTYPE_BUS   ] exe_alutype_i;
@@ -96,26 +109,44 @@ module MiniMIPS32(
     wire                   wb_whilo_o;
     wire[`DOUBLE_REG_BUS]  wb_hilo_o;
 
-    if_stage if_stage0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
+    if_stage if_stage0(
+        .cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
+/*---------------------------------------------转移指令添加begin-------------------------------*/
+        .pc_plus_4(if_pc_plus_4),
+        .jump_addr_1(jump_addr_1), .jump_addr_2(jump_addr_2),
+        .jump_addr_3(jump_addr_3), .jtsel(jtsel),
+/*---------------------------------------------转移指令添加end---------------------------------*/
+
         .pc(pc), .ice(ice), .iaddr(iaddr));
     
     ifid_reg ifid_reg0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
+/*--------------------------------------------转移指令添加begin-------------------------------*/
+        .if_pc_plus_4(if_pc_plus_4), .id_pc_plus_4(id_pc_plus_4),
+/*--------------------------------------------转移指令添加end---------------------------------*/
+
         .if_pc(pc), .id_pc(id_pc_i)
     );
 
     id_stage id_stage0(.cpu_rst_n(cpu_rst_n), .id_pc_i(id_pc_i), 
+/*--------------------------------------------转移指令添加begin-------------------------------*/
+        .pc_plus_4(id_pc_plus_4),
+/*--------------------------------------------转移指令添加end---------------------------------*/
         .id_inst_i(inst),
         .rd1(rd1), .rd2(rd2),
         .rreg1(re1), .rreg2(re2), 	  
         .ra1(ra1), .ra2(ra2), 
-        /*-------------------------------------数据相关添加begin-------------------------------*/
+/*-------------------------------------数据相关添加begin-------------------------------*/
         .exe2id_wreg(exe_wreg_o), .exe2id_wa(exe_wa_o), .exe2id_wd(exe_wd_o),
         .mem2id_wreg(mem_wreg_o), .mem2id_wa(mem_wa_o), .mem2id_wd(mem_dreg_o),
-        /*-------------------------------------数据相关添加end---------------------------------*/
+/*-------------------------------------数据相关添加end---------------------------------*/
         .id_aluop_o(id_aluop_o), .id_alutype_o(id_alutype_o),
         .id_src1_o(id_src1_o), .id_src2_o(id_src2_o),
         .id_wa_o(id_wa_o), .id_wreg_o(id_wreg_o), .id_whilo_o(id_whilo_o),
-        .id_mreg_o(id_mreg_o), .id_din_o(id_din_o)
+        .id_mreg_o(id_mreg_o), .id_din_o(id_din_o),
+/*---------------------------------------------转移指令添加begin-------------------------------*/
+        .jump_addr_1(jump_addr_1), .jump_addr_2(jump_addr_2),
+        .jump_addr_3(jump_addr_3), .jtsel(jtsel), .ret_addr(id_ret_addr)
+/*---------------------------------------------转移指令添加end---------------------------------*/
     );
     
     regfile regfile0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
@@ -124,16 +155,23 @@ module MiniMIPS32(
         .re2(re2), .ra2(ra2), .rd2(rd2)
     );
     
-    idexe_reg idexe_reg0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n), 
+    idexe_reg idexe_reg0(
+        .cpu_rst_n(cpu_rst_n), .cpu_clk_50M(cpu_clk_50M),  
         .id_alutype(id_alutype_o), .id_aluop(id_aluop_o),
         .id_src1(id_src1_o), .id_src2(id_src2_o),
         .id_wa(id_wa_o), .id_wreg(id_wreg_o), .id_whilo(id_whilo_o),
         .id_mreg(id_mreg_o), .id_din(id_din_o),
+/*---------------------------------------------转移指令添加begin-------------------------------*/
+        .id_ret_addr(id_ret_addr),
+/*---------------------------------------------转移指令添加end---------------------------------*/
         .exe_alutype(exe_alutype_i), .exe_aluop(exe_aluop_i),
         .exe_src1(exe_src1_i), .exe_src2(exe_src2_i), 
         .exe_wa(exe_wa_i), .exe_wreg(exe_wreg_i),
         .exe_whilo(exe_whilo_i),
-        .exe_mreg(exe_mreg_i), .exe_din(exe_din_i)
+        .exe_mreg(exe_mreg_i), .exe_din(exe_din_i),
+/*---------------------------------------------转移指令添加begin-------------------------------*/
+        .exe_ret_addr(exe_ret_addr)
+/*---------------------------------------------转移指令添加end---------------------------------*/
     );
     
     exe_stage exe_stage0(.cpu_rst_n(cpu_rst_n),
@@ -147,6 +185,9 @@ module MiniMIPS32(
         .mem2exe_whilo(mem_whilo_o), .mem2exe_hilo(mem_hilo_o),
         .wb2exe_whilo(wb_whilo_i), .wb2exe_hilo(wb_hilo_i),
         /*------------------------------消除数据相关添加end----------------------------*/
+/*---------------------------------------------转移指令添加begin-------------------------------*/
+        .ret_addr(exe_ret_addr),
+/*---------------------------------------------转移指令添加end---------------------------------*/
         .exe_aluop_o(exe_aluop_o),
         .exe_wa_o(exe_wa_o), .exe_wreg_o(exe_wreg_o), .exe_wd_o(exe_wd_o),
         .exe_whilo_o(exe_whilo_o), .exe_hilo_o(exe_hilo_o),

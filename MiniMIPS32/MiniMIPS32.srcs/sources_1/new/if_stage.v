@@ -3,14 +3,26 @@
 module if_stage (
     input 	wire 					cpu_clk_50M,
     input 	wire 					cpu_rst_n,
+    
+/*------------------------------转移指令添加begin---------------------------*/
+    input   wire [`INST_ADDR_BUS]  jump_addr_1,
+    input   wire [`INST_ADDR_BUS]  jump_addr_2,
+    input   wire [`INST_ADDR_BUS]  jump_addr_3,
+    input   wire [`JTSEL_BUS]      jtsel,
+    output  wire [`INST_ADDR_BUS]  pc_plus_4,
+/*------------------------------转移指令添加end-----------------------------*/
     output  reg                     ice,
     output 	reg  [`INST_ADDR_BUS] 	pc,
     output 	wire [`INST_ADDR_BUS]	iaddr
     );
-    
+/*--------------------------------转移指令修改begin----------------------------*/
+    assign pc_plus_4 = (cpu_rst_n == `RST_ENABLE) ? `PC_INIT : pc + 4;
     wire [`INST_ADDR_BUS] pc_next; 
-    assign pc_next = pc + 4;                  // 计算下一条指令的地址
-    
+    assign pc_next = (jtsel == 2'b00) ? pc_plus_4 : 
+                     (jtsel == 2'b01) ? jump_addr_1 : 
+                     (jtsel == 2'b10) ? jump_addr_2 : 
+                     (jtsel == 2'b11) ? jump_addr_3 : `PC_INIT;                  // 计算下一条指令的地址
+/*--------------------------------转移指令修改end------------------------------*/   
     always @(posedge cpu_clk_50M) begin
 		if (cpu_rst_n == `RST_ENABLE) begin
 			ice <= `CHIP_DISABLE;		      // 复位的时候指令存储器禁用  
