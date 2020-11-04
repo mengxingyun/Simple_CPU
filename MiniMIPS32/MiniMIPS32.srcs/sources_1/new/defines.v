@@ -68,8 +68,15 @@
 `define MINIMIPS32_J               8'h2C
 `define MINIMIPS32_JR              8'h2D
 `define MINIMIPS32_JAL             8'h2E
+`define MINIMIPS32_JALR            8'h2F
 `define MINIMIPS32_BEQ             8'h30
 `define MINIMIPS32_BNE             8'h31
+`define MINIMIPS32_BLEZ            8'h32
+`define MINIMIPS32_BGTZ            8'h33
+`define MINIMIPS32_BLTZ            8'h34
+`define MINIMIPS32_BGEZ            8'h35
+`define MINIMIPS32_BLTZAL          8'h36
+`define MINIMIPS32_BGEZAL          8'h37
 `define MINIMIPS32_LB              8'h90
 `define MINIMIPS32_LH              8'h91
 `define MINIMIPS32_LW              8'h92
