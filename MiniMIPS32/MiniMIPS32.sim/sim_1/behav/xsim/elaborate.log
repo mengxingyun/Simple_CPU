@@ -33,6 +33,7 @@ Compiling module xil_defaultlib.mem_stage
 Compiling module xil_defaultlib.memwb_reg
 Compiling module xil_defaultlib.wb_stage
 Compiling module xil_defaultlib.hilo
+Compiling module xil_defaultlib.scu
 Compiling module xil_defaultlib.MiniMIPS32
 Compiling module xil_defaultlib.MiniMIPS32_SYS
 Compiling module xil_defaultlib.MiniMIPS32_SYS_tb

@@ -108,6 +108,13 @@ module MiniMIPS32(
     
     wire                   wb_whilo_o;
     wire[`DOUBLE_REG_BUS]  wb_hilo_o;
+    
+    /*---------------------------------*流水线暂停begin------------------------*/
+    wire [`STALL_BUS]              stall;
+    wire                           stallreq_id;//译码阶段发来的暂停信号
+    wire                           stallreq_exe; //执行阶段发来的暂停信号
+    /*---------------------------------*流水线暂停end--------------------------*/
+    
 
     if_stage if_stage0(
         .cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
@@ -116,6 +123,9 @@ module MiniMIPS32(
         .jump_addr_1(jump_addr_1), .jump_addr_2(jump_addr_2),
         .jump_addr_3(jump_addr_3), .jtsel(jtsel),
 /*---------------------------------------------转移指令添加end---------------------------------*/
+/*---------------------------------------------流水线暂停begin----------------------------------*/
+        .stall(stall),
+/*---------------------------------------------流水线暂停end------------------------------------*/
 
         .pc(pc), .ice(ice), .iaddr(iaddr));
     
@@ -124,10 +134,16 @@ module MiniMIPS32(
         .if_pc_plus_4(if_pc_plus_4), .id_pc_plus_4(id_pc_plus_4),
 /*--------------------------------------------转移指令添加end---------------------------------*/
 
+/*---------------------------------------------流水线暂停begin----------------------------------*/
+        .stall(stall),
+/*---------------------------------------------流水线暂停end------------------------------------*/
+
         .if_pc(pc), .id_pc(id_pc_i)
     );
 
-    id_stage id_stage0(.cpu_rst_n(cpu_rst_n), .id_pc_i(id_pc_i), 
+    id_stage id_stage0(
+       
+        .cpu_rst_n(cpu_rst_n), .id_pc_i(id_pc_i), 
 /*--------------------------------------------转移指令添加begin-------------------------------*/
         .pc_plus_4(id_pc_plus_4),
 /*--------------------------------------------转移指令添加end---------------------------------*/
@@ -143,6 +159,9 @@ module MiniMIPS32(
         .id_src1_o(id_src1_o), .id_src2_o(id_src2_o),
         .id_wa_o(id_wa_o), .id_wreg_o(id_wreg_o), .id_whilo_o(id_whilo_o),
         .id_mreg_o(id_mreg_o), .id_din_o(id_din_o),
+/*---------------------------------------------流水线暂停begin----------------------------------*/
+        .exe2id_mreg(exe_mreg_o), .mem2id_mreg(mem_mreg_o), .stallreq_id(stallreq_id),
+/*---------------------------------------------流水线暂停end------------------------------------*/
 /*---------------------------------------------转移指令添加begin-------------------------------*/
         .jump_addr_1(jump_addr_1), .jump_addr_2(jump_addr_2),
         .jump_addr_3(jump_addr_3), .jtsel(jtsel), .ret_addr(id_ret_addr)
@@ -164,6 +183,9 @@ module MiniMIPS32(
 /*---------------------------------------------转移指令添加begin-------------------------------*/
         .id_ret_addr(id_ret_addr),
 /*---------------------------------------------转移指令添加end---------------------------------*/
+/*---------------------------------------------流水线暂停begin----------------------------------*/
+        .stall(stall),
+/*---------------------------------------------流水线暂停end------------------------------------*/
         .exe_alutype(exe_alutype_i), .exe_aluop(exe_aluop_i),
         .exe_src1(exe_src1_i), .exe_src2(exe_src2_i), 
         .exe_wa(exe_wa_i), .exe_wreg(exe_wreg_i),
@@ -188,6 +210,9 @@ module MiniMIPS32(
 /*---------------------------------------------转移指令添加begin-------------------------------*/
         .ret_addr(exe_ret_addr),
 /*---------------------------------------------转移指令添加end---------------------------------*/
+/*---------------------------------------------流水线暂停begin----------------------------------*/
+        .stallreq_exe(stallreq_exe), .cpu_clk_50M(cpu_clk_50M), 
+/*---------------------------------------------流水线暂停end------------------------------------*/
         .exe_aluop_o(exe_aluop_o),
         .exe_wa_o(exe_wa_o), .exe_wreg_o(exe_wreg_o), .exe_wd_o(exe_wd_o),
         .exe_whilo_o(exe_whilo_o), .exe_hilo_o(exe_hilo_o),
@@ -199,6 +224,9 @@ module MiniMIPS32(
         .exe_wa(exe_wa_o), .exe_wreg(exe_wreg_o), .exe_wd(exe_wd_o),
         .exe_whilo(exe_whilo_o), .exe_hilo(exe_hilo_o),
         .exe_mreg(exe_mreg_o), .exe_din(exe_din_o),
+/*---------------------------------------------流水线暂停begin----------------------------------*/
+        .stall(stall),
+/*---------------------------------------------流水线暂停end------------------------------------*/
         .mem_aluop(mem_aluop_i),
         .mem_wa(mem_wa_i), .mem_wreg(mem_wreg_i), .mem_wd(mem_wd_i),
         .mem_whilo(mem_whilo_i), .mem_hilo(mem_hilo_i),
@@ -238,6 +266,13 @@ module MiniMIPS32(
     hilo hilo0(
         .cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n), .we(wb_whilo_o),
         .hi_i(wb_hilo_o[63:32]), .lo_i(wb_hilo_o[31:0]), .hi_o(exe_hi_i), .lo_o(exe_lo_i)
+    );
+    
+    scu scu0(
+        .cpu_rst_n(cpu_rst_n),
+        .stallreq_id(stallreq_id),
+        .stallreq_exe(stallreq_exe),
+        .stall(stall)
     );
 
 endmodule

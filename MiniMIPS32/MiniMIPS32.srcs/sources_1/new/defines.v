@@ -55,6 +55,8 @@
 `define MINIMIPS32_SRA             8'h13//SRAV共用
 `define MINIMIPS32_MULT            8'h14
 `define MINIMIPS32_MULTU           8'h15
+`define MINIMIPS32_DIV             8'h16
+`define MINIMIPS32_DIVU            8'h17
 `define MINIMIPS32_ADD             8'h18 //ADDI共用
 `define MINIMIPS32_ADDIU           8'h19 //ADDU共用
 `define MINIMIPS32_SUB             8'h1A 
@@ -90,4 +92,25 @@
 `define REG_ADDR_BUS    4 : 0               // 寄存器的地址宽度
 `define REG_NUM         32                  // 寄存器数量32个
 `define REG_NOP         5'b00000            // 零号寄存器
+
+
+/*-------------------------流水线暂停begin----------------------------*/
+`define STALL_BUS       3:0//暂停信号宽度
+`define STOP            1'b1//流水线暂停
+`define NOSTOP          1'b0//流水线不暂停
+
+/*-------------------------流水线暂停-end-----------------------------*/
+
+/*-----------------------------------除法指令参数begin----------------------*/
+`define DIV_FREE        2'b00 //除法准备状态
+`define DIV_BY_ZERO      2'b01 //判断是否除0状态
+`define DIV_ON          2'b10 //除法开始状态
+`define DIV_END         2'b11 //除法结束状态
+`define DIV_READY       1'b1 //除法运算结束信号
+`define DIV_NOT_READY   1'b0 //除法运算未结束信号
+`define DIV_START       1'b1 //除法开始信号
+`define DIV_STOP        1'b0 //除法未开始信号
+/*-----------------------------------除法指令参数end------------------------*/
+
+
 

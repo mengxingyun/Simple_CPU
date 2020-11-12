@@ -24,6 +24,16 @@ module id_stage(
     input  wire [`REG_ADDR_BUS]     mem2id_wa,
     input  wire [`INST_BUS]         mem2id_wd,
     /*------------------------------消除数据相关end--------------------------------*/
+    
+    /*------------------------------流水线暂停begin--------------------------------*/
+    //从执行阶段和访存阶段回传的存储器到寄存器使能信号
+    input  wire                     exe2id_mreg,
+    input  wire                     mem2id_mreg,
+    
+    //译码阶段发出的暂停请求信号
+    output wire                     stallreq_id,
+    /*------------------------------流水线暂停end----------------------------------*/
+    
     /*------------------------------转移指令添加begin------------------------------*/
     input  wire [`INST_ADDR_BUS]    pc_plus_4,
     
@@ -121,6 +131,12 @@ module id_stage(
     wire inst_bgezal = ~op[5] & ~op[4] & ~op[3] & ~op[2] & ~op[1] & op[0] & id_inst[20] & id_inst[16];//48: bgezal(如果rs >= 0，则跳转到PC + 4 + imm,并且把PC + 8存到$ra)
     wire inst_bltzal = ~op[5] & ~op[4] & ~op[3] & ~op[2] & ~op[1] & op[0] & id_inst[20] & ~id_inst[16];//49: bltzal(如果rs < 0，则跳转到PC + 4 + imm,并且把PC + 8存到$ra)
     /*----------------------------转移指令添加end---------------------------------*/
+    
+    /*----------------------------除法指令添加begin---------------------------------*/
+    wire inst_div = inst_reg & ~func[5] & func[4] & func[3] & ~func[2] & func[1] & ~func[0]; //50: div有符号除法
+    wire inst_divu = inst_reg & ~func[5] & func[4] & func[3] & ~func[2] & func[1] & func[0]; //51: divu无符号除法
+    /*----------------------------除法指令添加end-----------------------------------*/
+    
 
     /*-------------------- 第二级译码逻辑：生成具体控制信号 --------------------*/
     // 操作类型alutype
@@ -152,7 +168,8 @@ module id_stage(
                                                                   inst_multu | inst_or | inst_xor | inst_nor | inst_sllv | 
                                                                   inst_srl | inst_srlv | inst_sra | inst_srav | inst_lh | 
                                                                   inst_lbu | inst_lhu | inst_beq | inst_bne | inst_blez | inst_bgtz | 
-                                                                  inst_bltz | inst_bgez | inst_bltzal | inst_bgezal);
+                                                                  inst_bltz | inst_bgez | inst_bltzal | inst_bgezal | inst_div | 
+                                                                  inst_divu );
     assign id_aluop_o[3]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mflo | inst_mfhi | inst_ori | inst_sb | inst_sh |
                                                                   inst_sw | inst_add | inst_subu | inst_addiu | inst_addi | 
                                                                   inst_andi | inst_xori | inst_addu | inst_sub | inst_or | 
@@ -162,17 +179,18 @@ module id_stage(
                                                                   inst_slt | inst_sltiu | inst_slti | inst_andi | inst_xori | 
                                                                   inst_sltu | inst_multu | inst_or | inst_xor | inst_nor | inst_mthi | 
                                                                   inst_mtlo | inst_lhu | inst_j | inst_jal | inst_jr | inst_jalr | 
-                                                                  inst_bltz | inst_bgez | inst_bltzal | inst_bgezal);
+                                                                  inst_bltz | inst_bgez | inst_bltzal | inst_bgezal | inst_div | 
+                                                                  inst_divu );
     assign id_aluop_o[1]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_lw | inst_sw | inst_subu | inst_slt | inst_sltiu | 
                                                                   inst_slti | inst_xori | inst_sub | inst_sltu | inst_xor | 
                                                                   inst_nor | inst_srl | inst_srlv | inst_sra | inst_srav | 
                                                                   inst_mthi | inst_mtlo | inst_lbu | inst_jal | inst_jalr | inst_blez | 
-                                                                  inst_bgtz | inst_bltzal | inst_bgezal);
+                                                                  inst_bgtz | inst_bltzal | inst_bgezal | inst_div | inst_divu);
     assign id_aluop_o[0]   = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mflo | inst_sll | inst_ori | inst_lui | inst_sh | inst_subu |
                                                                   inst_addiu | inst_sltiu | inst_addu | inst_sltu | inst_multu | 
                                                                   inst_or | inst_nor | inst_sllv | inst_sra | inst_srav | inst_mtlo | 
                                                                   inst_lh | inst_lbu | inst_jr | inst_bne | inst_jalr | inst_bgtz | 
-                                                                  inst_bgez | inst_bgezal );
+                                                                  inst_bgez | inst_bgezal | inst_divu);
 
     // 写通用寄存器使能信号
     assign id_wreg_o       = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : ( inst_and | inst_mfhi | inst_mflo | inst_sll | inst_ori | 
@@ -184,7 +202,7 @@ module id_stage(
                                                                   inst_bgezal | inst_bltzal );
     
     //写HILO寄存器使能信号
-    assign id_whilo_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mult | inst_multu | inst_mthi | inst_mtlo);
+    assign id_whilo_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_mult | inst_multu | inst_mthi | inst_mtlo | inst_div | inst_divu);
     
     //移位使能信号（sa字段）
     wire shift = inst_sll | inst_sra | inst_srl ;
@@ -214,12 +232,14 @@ module id_stage(
                                                         inst_multu | inst_sltu | inst_or | inst_xor | inst_nor | inst_sllv | 
                                                         inst_srlv | inst_srav | inst_mthi | inst_mtlo | inst_lbu | inst_lh |
                                                         inst_lhu | inst_jr | inst_beq | inst_bne | inst_jalr | inst_blez | 
-                                                        inst_bgez | inst_bltz | inst_bgtz | inst_bgezal | inst_bltzal);
+                                                        inst_bgez | inst_bltz | inst_bgtz | inst_bgezal | inst_bltzal | inst_div | 
+                                                        inst_divu);
     // 读通用寄存器堆读端口2使能信号
     assign rreg2 = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : (inst_and | inst_mult | inst_sll | inst_sb | inst_sh | inst_sw | 
                                                         inst_add | inst_subu | inst_slt | inst_addu | inst_sub | inst_multu | 
                                                         inst_sltu | inst_or | inst_xor | inst_nor | inst_sllv | inst_srl | 
-                                                        inst_srlv | inst_sra | inst_srav | inst_beq | inst_bne);
+                                                        inst_srlv | inst_sra | inst_srav | inst_beq | inst_bne | inst_div | 
+                                                        inst_divu);
     
     /*------------------------------------------------------------------------------*/
 
@@ -303,5 +323,16 @@ module id_stage(
     assign jtsel[0] = inst_j | inst_jal | inst_beq & equ | inst_bne & equ | inst_blez & equ | inst_bgez & equ | inst_bltz & equ | 
                       inst_bgtz & equ | inst_bgezal & equ | inst_bltzal & equ;
 /*----------------------------------------转移指令添加end---------------------------------*/
+
+    /*-----------------------------------------流水线暂停begin----------------------------*/
+    assign stallreq_id = (cpu_rst_n == `RST_ENABLE) ? `NOSTOP : 
+                         (((exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra1 && rreg1 == `READ_ENABLE) || 
+                           (exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra2 && rreg2 == `READ_ENABLE)) &&
+                          (exe2id_mreg == `TRUE_V)) ? `STOP : 
+                         (((mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra1 && rreg1 == `READ_ENABLE) || 
+                           (mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra2 && rreg2 == `READ_ENABLE)) && 
+                          (mem2id_mreg == `TRUE_V)) ? `STOP : `NOSTOP;
+    /*-----------------------------------------流水线暂停end------------------------------*/
+    
     
 endmodule

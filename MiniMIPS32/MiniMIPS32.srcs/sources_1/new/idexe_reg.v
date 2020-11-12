@@ -15,6 +15,7 @@ module idexe_reg (
     input  wire                   id_mreg,
     input  wire [`REG_BUS]        id_din,
     input  wire [`REG_BUS]        id_ret_addr,//转移指令添加
+    input  wire [`STALL_BUS]      stall, //流水线暂停添加
     
     // 送至执行阶段的信息
     output reg  [`ALUTYPE_BUS  ]  exe_alutype,
@@ -44,7 +45,21 @@ module idexe_reg (
             exe_ret_addr       <= `ZERO_WORD;
         end
         // 将来自译码阶段的信息寄存并送至执行阶段
-        else begin
+        /*------------------------------------流水线暂停begin-----------------------------*/
+        else if(stall[2] == `STOP && stall[3] == `NOSTOP)
+        begin
+            exe_alutype 	   <= `NOP;
+            exe_aluop            <= `MINIMIPS32_SLL;
+            exe_src1            <= `ZERO_WORD;
+            exe_src2            <= `ZERO_WORD;
+            exe_wa                <= `REG_NOP;
+            exe_wreg           <= `WRITE_DISABLE;
+            exe_whilo          <= `WRITE_DISABLE;
+            exe_mreg           <= `FALSE_V;
+            exe_din            <= `ZERO_WORD;
+            exe_ret_addr       <= `ZERO_WORD;
+        end
+        else if(stall[2] == `NOSTOP)begin
             exe_alutype 	   <= id_alutype;
             exe_aluop 		   <= id_aluop;
             exe_src1 		   <= id_src1;
@@ -56,6 +71,7 @@ module idexe_reg (
             exe_din            <= id_din;
             exe_ret_addr       <= id_ret_addr;
         end
+        /*------------------------------------流水线暂停end-------------------------------*/
     end
 
 endmodule

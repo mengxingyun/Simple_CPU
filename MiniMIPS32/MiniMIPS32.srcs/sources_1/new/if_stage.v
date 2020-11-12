@@ -3,7 +3,9 @@
 module if_stage (
     input 	wire 					cpu_clk_50M,
     input 	wire 					cpu_rst_n,
-    
+/*------------------------------流水线暂停begin-----------------------------*/ 
+    input   wire [`STALL_BUS]     stall,
+/*------------------------------流水线暂停end-------------------------------*/ 
 /*------------------------------转移指令添加begin---------------------------*/
     input   wire [`INST_ADDR_BUS]  jump_addr_1,
     input   wire [`INST_ADDR_BUS]  jump_addr_2,
@@ -11,7 +13,7 @@ module if_stage (
     input   wire [`JTSEL_BUS]      jtsel,
     output  wire [`INST_ADDR_BUS]  pc_plus_4,
 /*------------------------------转移指令添加end-----------------------------*/
-    output  reg                     ice,
+    output  wire                     ice,
     output 	reg  [`INST_ADDR_BUS] 	pc,
     output 	wire [`INST_ADDR_BUS]	iaddr
     );
@@ -23,21 +25,28 @@ module if_stage (
                      (jtsel == 2'b10) ? jump_addr_2 : 
                      (jtsel == 2'b11) ? jump_addr_3 : `PC_INIT;                  // 计算下一条指令的地址
 /*--------------------------------转移指令修改end------------------------------*/   
+
+/*---------------------------------流水线暂停begin-----------------------------*/
+    reg ce;
     always @(posedge cpu_clk_50M) begin
 		if (cpu_rst_n == `RST_ENABLE) begin
-			ice <= `CHIP_DISABLE;		      // 复位的时候指令存储器禁用  
+			ce <= `CHIP_DISABLE;		      // 复位的时候指令存储器禁用  
 		end else begin
-			ice <= `CHIP_ENABLE; 		      // 复位结束后，指令存储器使能
+			ce <= `CHIP_ENABLE; 		      // 复位结束后，指令存储器使能
 		end
 	end
+	
+    assign ice = (stall[1] == `TRUE_V) ? 0 :ce;
 
     always @(posedge cpu_clk_50M) begin
-        if (ice == `CHIP_DISABLE)
+        if (ce == `CHIP_DISABLE)
             pc <= `PC_INIT;                   // 指令存储器禁用的时候，PC保持初始值（MiniMIPS32中设置为0x00000000）
-        else begin
+        else if (stall[0] == `NOSTOP)begin
             pc <= pc_next;                    // 指令存储器使能后，PC值每时钟周期加4 	
         end
     end
+/*---------------------------------流水线暂停end-------------------------------*/
+    
     
     assign iaddr = (ice == `CHIP_DISABLE) ? `PC_INIT : pc;    // 获得访问指令存储器的地址
 

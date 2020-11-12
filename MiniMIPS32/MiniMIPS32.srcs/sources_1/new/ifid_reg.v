@@ -3,6 +3,10 @@
 module ifid_reg (
 	input  wire 						cpu_clk_50M,
 	input  wire 						cpu_rst_n,
+/*-------------------------流水线暂停begin------------------------------------*/
+    input  wire [`STALL_BUS]           stall,
+/*-------------------------流水线暂停end--------------------------------------*/
+
 
 	// 来自取指阶段的信息  
 	input  wire [`INST_ADDR_BUS]       if_pc,
@@ -19,11 +23,17 @@ module ifid_reg (
 			id_pc 	<= `PC_INIT;
 			id_pc_plus_4 <= `ZERO_WORD;//转移指令添加
 		end
+/*-----------------------------------------------流水线暂停begin------------------------------------*/
 		// 将来自取指阶段的信息寄存并送至译码阶段
-		else begin
-			id_pc	<= if_pc;	
-			id_pc_plus_4 <= if_pc_plus_4;//转移指令添加	
+		else if(stall[1] == `STOP && stall[2] == `NOSTOP)begin
+			id_pc	<=  `ZERO_WORD;	
+			id_pc_plus_4 <= `ZERO_WORD;//转移指令添加	
+		end
+		else if(stall[1] == `NOSTOP) begin
+		    id_pc <= if_pc;
+		    id_pc_plus_4 <= if_pc_plus_4;
 		end
 	end
+/*-----------------------------------------------流水线暂停end---------------------------------------*/
 
 endmodule
